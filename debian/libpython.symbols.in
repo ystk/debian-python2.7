@@ -30,6 +30,11 @@
  PyBuffer_Release@Base @VER@
  PyBuffer_ToContiguous@Base @VER@
  PyBuffer_Type@Base @VER@
+ (optional)PyBufferedIOBase_Type@Base @VER@
+ (optional)PyBufferedRWPair_Type@Base @VER@
+ (optional)PyBufferedRandom_Type@Base @VER@
+ (optional)PyBufferedReader_Type@Base @VER@
+ (optional)PyBufferedWriter_Type@Base @VER@
  PyByteArrayIter_Type@Base @VER@
  PyByteArray_AsString@Base @VER@
  PyByteArray_Concat@Base @VER@
@@ -40,6 +45,7 @@
  PyByteArray_Resize@Base @VER@
  PyByteArray_Size@Base @VER@
  PyByteArray_Type@Base @VER@
+ (optional)PyBytesIO_Type@Base @VER@
  PyCFunction_Call@Base @VER@
  PyCFunction_ClearFreeList@Base @VER@
  PyCFunction_Fini@Base @VER@
@@ -203,6 +209,7 @@
  PyExc_AssertionError@Base @VER@
  PyExc_AttributeError@Base @VER@
  PyExc_BaseException@Base @VER@
+ (optional)PyExc_BlockingIOError@Base @VER@
  PyExc_BufferError@Base @VER@
  PyExc_BytesWarning@Base @VER@
  PyExc_DeprecationWarning@Base @VER@
@@ -249,6 +256,7 @@
  PyExc_ValueError@Base @VER@
  PyExc_Warning@Base @VER@
  PyExc_ZeroDivisionError@Base @VER@
+ (optional)PyFileIO_Type@Base @VER@
  PyFile_AsFile@Base @VER@
  PyFile_DecUseCount@Base @VER@
  PyFile_FromFile@Base @VER@
@@ -307,6 +315,7 @@
  PyGrammar_FindDFA@Base @VER@
  PyGrammar_LabelRepr@Base @VER@
  PyGrammar_RemoveAccelerators@Base @VER@
+ (optional)PyIOBase_Type@Base @VER@
  PyImport_AddModule@Base @VER@
  PyImport_AppendInittab@Base @VER@
  PyImport_Cleanup@Base @VER@
@@ -324,6 +333,7 @@
  PyImport_ImportModuleNoBlock@Base @VER@
  PyImport_Inittab@Base @VER@
  PyImport_ReloadModule@Base @VER@
+ (optional)PyIncrementalNewlineDecoder_Type@Base @VER@
  PyInstance_New@Base @VER@
  PyInstance_NewRaw@Base @VER@
  PyInstance_Type@Base @VER@
@@ -438,6 +448,7 @@
  PyNumber_Absolute@Base @VER@
  PyNumber_Add@Base @VER@
  PyNumber_And@Base @VER@
+ (optional)PyNumber_AsOff_t@Base @VER@
  PyNumber_AsSsize_t@Base @VER@
  PyNumber_Check@Base @VER@
  PyNumber_Coerce@Base @VER@
@@ -572,6 +583,7 @@
  PyParser_SimpleParseStringFlagsFilename@Base @VER@
  PyProperty_Type@Base @VER@
  PyRange_Type@Base @VER@
+ (optional)PyRawIOBase_Type@Base @VER@
  PyReversed_Type@Base @VER@
  PyRun_AnyFile@Base @VER@
  PyRun_AnyFileEx@Base @VER@
@@ -632,6 +644,7 @@
  PySlice_Type@Base @VER@
  PyStaticMethod_New@Base @VER@
  PyStaticMethod_Type@Base @VER@
+ (optional)PyStringIO_Type@Base @VER@
  PyString_AsDecodedObject@Base @VER@
  PyString_AsDecodedString@Base @VER@
  PyString_AsEncodedObject@Base @VER@
@@ -673,6 +686,8 @@
  PySys_SetPath@Base @VER@
  PySys_WriteStderr@Base @VER@
  PySys_WriteStdout@Base @VER@
+ (optional)PyTextIOBase_Type@Base @VER@
+ (optional)PyTextIOWrapper_Type@Base @VER@
  PyThreadState_Clear@Base @VER@
  PyThreadState_Delete@Base @VER@
  PyThreadState_DeleteCurrent@Base @VER@
@@ -916,6 +931,7 @@
  _PyEval_SliceIndex@Base @VER@
  _PyExc_Fini@Base @VER@
  _PyExc_Init@Base @VER@
+ (optional)_PyFileIO_closed@Base @VER@
  _PyFile_SanitizeMode@Base @VER@
  _PyFloat_FormatAdvanced@Base @VER@
  _PyFloat_Init@Base @VER@
@@ -928,6 +944,43 @@
  _PyGC_generation0@Base @VER@
  _PyGILState_Fini@Base @VER@
  _PyGILState_Init@Base @VER@
+ (optional)_PyIOBase_check_closed@Base @VER@
+ (optional)_PyIOBase_check_readable@Base @VER@
+ (optional)_PyIOBase_check_seekable@Base @VER@
+ (optional)_PyIOBase_check_writable@Base @VER@
+ (optional)_PyIOBase_finalize@Base @VER@
+ (optional)_PyIO_ConvertSsize_t@Base @VER@
+ (optional)_PyIO_empty_bytes@Base @VER@
+ (optional)_PyIO_empty_str@Base @VER@
+ (optional)_PyIO_find_line_ending@Base @VER@
+ (optional)_PyIO_locale_module@Base @VER@
+ (optional)_PyIO_os_module@Base @VER@
+ (optional)_PyIO_str_close@Base @VER@
+ (optional)_PyIO_str_closed@Base @VER@
+ (optional)_PyIO_str_decode@Base @VER@
+ (optional)_PyIO_str_encode@Base @VER@
+ (optional)_PyIO_str_fileno@Base @VER@
+ (optional)_PyIO_str_flush@Base @VER@
+ (optional)_PyIO_str_getstate@Base @VER@
+ (optional)_PyIO_str_isatty@Base @VER@
+ (optional)_PyIO_str_newlines@Base @VER@
+ (optional)_PyIO_str_nl@Base @VER@
+ (optional)_PyIO_str_read1@Base @VER@
+ (optional)_PyIO_str_read@Base @VER@
+ (optional)_PyIO_str_readable@Base @VER@
+ (optional)_PyIO_str_readinto@Base @VER@
+ (optional)_PyIO_str_readline@Base @VER@
+ (optional)_PyIO_str_reset@Base @VER@
+ (optional)_PyIO_str_seek@Base @VER@
+ (optional)_PyIO_str_seekable@Base @VER@
+ (optional)_PyIO_str_setstate@Base @VER@
+ (optional)_PyIO_str_tell@Base @VER@
+ (optional)_PyIO_str_truncate@Base @VER@
+ (optional)_PyIO_str_writable@Base @VER@
+ (optional)_PyIO_str_write@Base @VER@
+ (optional)_PyIO_trap_eintr@Base @VER@
+ (optional)_PyIO_unsupported_operation@Base @VER@
+ (optional)_PyIO_zero@Base @VER@
  _PyImportHooks_Init@Base @VER@
  _PyImport_AcquireLock@Base @VER@
  _PyImport_DynLoadFiletab@Base @VER@
@@ -943,12 +996,17 @@
  _PyImport_LoadDynamicModule@Base @VER@
  _PyImport_ReleaseLock@Base @VER@
  _PyImport_ReInitLock@Base @VER@
+ (optional)_PyIncrementalNewlineDecoder_decode@Base @VER@
  _PyInstance_Lookup@Base @VER@
+ _PyInt_AsInt@Base @VER@
  _PyInt_Format@Base @VER@
  _PyInt_FormatAdvanced@Base @VER@
+ _PyInt_FromGid@Base @VER@
+ _PyInt_FromUid@Base @VER@
  _PyInt_Init@Base @VER@
  _PyList_Extend@Base @VER@
  _PyLong_AsByteArray@Base @VER@
+ _PyLong_AsInt@Base @VER@
  _PyLong_Copy@Base @VER@
  _PyLong_DigitValue@Base @VER@
  _PyLong_Format@Base @VER@
@@ -960,6 +1018,7 @@
  _PyLong_NumBits@Base @VER@
  _PyLong_Sign@Base @VER@
  _PyModule_Clear@Base @VER@
+ _PyNode_SizeOf@Base @VER@
  _PyNumber_ConvertIntegralToInt@Base @VER@
  _PyOS_GetOpt@Base @VER@
  _PyOS_ReadlineTState@Base @VER@
@@ -967,6 +1026,7 @@
  _PyOS_URandom@Base @VER@
  _PyOS_ascii_formatd@Base @VER@
  _PyOS_ascii_strtod@Base @VER@
+ _PyOS_mystrnicmp_hack@Base @VER@
  _PyOS_optarg@Base @VER@
  _PyOS_opterr@Base @VER@
  _PyOS_optind@Base @VER@
@@ -1013,10 +1073,13 @@
  _PyThreadState_Prealloc@Base @VER@
  _PyThread_CurrentFrames@Base @VER@
  _PyTime_DoubleToTimet@Base @VER@
+ _PyTime_FloatTime@Base @VER@
  _PyTrash_delete_later@Base @VER@
  _PyTrash_delete_nesting@Base @VER@
  _PyTrash_deposit_object@Base @VER@
  _PyTrash_destroy_chain@Base @VER@
+ _PyTrash_thread_deposit_object@Base @VER@
+ _PyTrash_thread_destroy_chain@Base @VER@
  _PyTuple_MaybeUntrack@Base @VER@
  _PyTuple_Resize@Base @VER@
  _PyType_Lookup@Base @VER@
@@ -1081,6 +1144,7 @@
  _Py_For@Base @VER@
  _Py_FunctionDef@Base @VER@
  _Py_GeneratorExp@Base @VER@
+ _Py_Gid_Converter@Base @VER@
  _Py_Global@Base @VER@
  _Py_HashDouble@Base @VER@
  _Py_HashPointer@Base @VER@
@@ -1122,6 +1186,7 @@
  _Py_TryExcept@Base @VER@
  _Py_TryFinally@Base @VER@
  _Py_Tuple@Base @VER@
+ _Py_Uid_Converter@Base @VER@
  _Py_UnaryOp@Base @VER@
  _Py_VaBuildValue_SizeT@Base @VER@
  _Py_While@Base @VER@
@@ -1218,6 +1283,10 @@
  (optional)partial_reduce@Base @VER@
  (optional)partial_setstate@Base @VER@
 
+ (optional)md5_append@Base @VER@
+ (optional)md5_finish@Base @VER@
+ (optional)md5_init@Base @VER@
+
 # _check_for_multiple_distdirs@Base @VER@
  (optional)init_ast@Base @VER@
  (optional)init_bisect@Base @VER@
@@ -1226,8 +1295,13 @@
  (optional)init_functools@Base @VER@
  (optional)init_hashlib@Base @VER@
  (optional)init_heapq@Base @VER@
+ (optional)init_io@Base @VER@
  (optional)init_locale@Base @VER@
+ (optional)init_md5@Base @VER@
  (optional)init_random@Base @VER@
+ (optional)init_sha@Base @VER@
+ (optional)init_sha256@Base @VER@
+ (optional)init_sha512@Base @VER@
  (optional)init_socket@Base @VER@
  (optional)init_sockobject@Base @VER@
  (optional)init_sre@Base @VER@

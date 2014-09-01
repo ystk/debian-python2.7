@@ -8,10 +8,6 @@ if [ ! -f /etc/@PVER@/sitecustomize.py ]; then
 EOF
 fi
 
-syssite=/usr/lib/@PVER@/site-packages
-localsite=/usr/local/lib/@PVER@/dist-packages
-syslink=../../${localsite#/usr/*}
-
 case "$1" in
     configure)
         # Create empty directories in /usr/local
@@ -20,14 +16,12 @@ case "$1" in
             chmod 2775 /usr/local/lib/@PVER@ 2> /dev/null || true
             chown root:staff /usr/local/lib/@PVER@ 2> /dev/null || true
         fi
+	localsite=/usr/local/lib/@PVER@/dist-packages
         if [ ! -e $localsite ]; then
             mkdir -p $localsite 2> /dev/null || true
             chmod 2775 $localsite 2> /dev/null || true
             chown root:staff $localsite 2> /dev/null || true
         fi
-	#if [ ! -h $syssite ]; then
-	#    ln -s $syslink $syssite
-	#fi
 
 	if which update-binfmts >/dev/null; then
 	    update-binfmts --import @PVER@
@@ -37,13 +31,21 @@ case "$1" in
 esac
 
 if [ "$1" = configure ]; then
-    (
-    files=$(dpkg -L @PVER@-minimal | sed -n '/^\/usr\/lib\/@PVER@\/.*\.py$/p')
-	@PVER@ /usr/lib/@PVER@/py_compile.py $files
+    if ls -L /usr/lib/@PVER@/sitecustomize.py >/dev/null 2>&1; then
+	filt='cat'
+    else
+	filt='fgrep -v sitecustomize.py'
+    fi
+    files=$(dpkg -L lib@PVER@-minimal@HOST_QUAL@ \
+		| sed -n '/^\/usr\/lib\/@PVER@\/.*\.py$/p' | $filt)
+    if [ -n "$files" ]; then
+	@PVER@ -E -S /usr/lib/@PVER@/py_compile.py $files
 	if grep -sq '^byte-compile[^#]*optimize' /etc/python/debian_config; then
-	    @PVER@ -O /usr/lib/@PVER@/py_compile.py $files
+	    @PVER@ -E -S -O /usr/lib/@PVER@/py_compile.py $files
 	fi
-    )
+    else
+	echo >&2 "@PVER@-minimal: can't get files for byte-compilation"
+    fi
     bc=no
     if [ -z "$2" ] || dpkg --compare-versions "$2" lt 2.7-9 \
         || [ -f /var/lib/python/@PVER@_installed ]; then

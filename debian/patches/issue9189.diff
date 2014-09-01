@@ -2,7 +2,7 @@ Index: b/Lib/sysconfig.py
 ===================================================================
 --- a/Lib/sysconfig.py
 +++ b/Lib/sysconfig.py
-@@ -227,11 +227,19 @@
+@@ -231,11 +231,19 @@ def _parse_makefile(filename, vars=None)
                      done[n] = v
  
      # do variable interpolation here
@@ -25,7 +25,7 @@ Index: b/Lib/sysconfig.py
                  n = m.group(1)
                  found = True
                  if n in done:
-@@ -242,23 +250,48 @@
+@@ -246,23 +254,48 @@ def _parse_makefile(filename, vars=None)
                  elif n in os.environ:
                      # do it like make: fall back to environment
                      item = os.environ[n]
@@ -82,7 +82,7 @@ Index: b/Makefile.pre.in
 ===================================================================
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -62,12 +62,18 @@
+@@ -68,12 +68,18 @@ MAKESETUP=      $(srcdir)/Modules/makese
  # Compiler options
  OPT=		@OPT@
  BASECFLAGS=	@BASECFLAGS@
@@ -104,7 +104,7 @@ Index: b/Makefile.pre.in
  LDLAST=		@LDLAST@
  SGI_ABI=	@SGI_ABI@
  CCSHARED=	@CCSHARED@
-@@ -76,7 +82,7 @@
+@@ -82,7 +88,7 @@ ARFLAGS=	@ARFLAGS@
  # Extra C flags added for building the interpreter object files.
  CFLAGSFORSHARED=@CFLAGSFORSHARED@
  # C flags used for building the interpreter object files
@@ -113,7 +113,7 @@ Index: b/Makefile.pre.in
  
  
  # Machine-dependent subdirectories
-@@ -397,7 +403,7 @@
+@@ -437,7 +443,7 @@ coverage:
  
  # Build the interpreter
  $(BUILDPYTHON):	Modules/python.o $(LIBRARY) $(LDLIBRARY)
@@ -122,16 +122,16 @@ Index: b/Makefile.pre.in
  			Modules/python.o \
  			$(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
-@@ -413,7 +419,7 @@
- 	    s*) quiet="-q";; \
+@@ -459,7 +465,7 @@ sharedmods: $(BUILDPYTHON) pybuilddir.tx
+ 	    *\ -s*|s*) quiet="-q";; \
  	    *) quiet="";; \
  	esac; \
 -	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
 +	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' LDFLAGS='$(PY_LDFLAGS)' OPT='$(OPT)' \
- 		./$(BUILDPYTHON) -E $(srcdir)/setup.py $$quiet build
+ 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
+ 		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
  
- # Build static library
-@@ -430,18 +436,18 @@
+@@ -477,18 +483,18 @@ $(LIBRARY): $(LIBRARY_OBJS)
  
  libpython$(VERSION).so: $(LIBRARY_OBJS)
  	if test $(INSTSONAME) != $(LDLIBRARY); then \
@@ -146,7 +146,7 @@ Index: b/Makefile.pre.in
  libpython$(VERSION).dylib: $(LIBRARY_OBJS)
 -	 $(CC) -dynamiclib -Wl,-single_module $(LDFLAGS) -undefined dynamic_lookup -Wl,-install_name,$(prefix)/lib/libpython$(VERSION).dylib -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION) -o $@ $(LIBRARY_OBJS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
 +	 $(CC) -dynamiclib -Wl,-single_module $(PY_LDFLAGS) -undefined dynamic_lookup -Wl,-install_name,$(prefix)/lib/libpython$(VERSION).dylib -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION) -o $@ $(LIBRARY_OBJS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
- 		 
+ 
  
  libpython$(VERSION).sl: $(LIBRARY_OBJS)
 -	$(LDSHARED) -o $@ $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST)
@@ -154,7 +154,7 @@ Index: b/Makefile.pre.in
  
  # Copy up the gdb python hooks into a position where they can be automatically
  # loaded by gdb during Lib/test/test_gdb.py
-@@ -480,7 +486,7 @@
+@@ -527,7 +533,7 @@ $(PYTHONFRAMEWORKDIR)/Versions/$(VERSION
  # for a shared core library; otherwise, this rule is a noop.
  $(DLLLIBRARY) libpython$(VERSION).dll.a: $(LIBRARY_OBJS)
  	if test -n "$(DLLLIBRARY)"; then \
@@ -163,7 +163,7 @@ Index: b/Makefile.pre.in
  			$(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST); \
  	else true; \
  	fi
-@@ -524,7 +530,7 @@
+@@ -571,7 +577,7 @@ Modules/getbuildinfo.o: $(PARSER_OBJS) \
  		$(SIGNAL_OBJS) \
  		$(MODOBJS) \
  		$(srcdir)/Modules/getbuildinfo.c
@@ -172,7 +172,7 @@ Index: b/Makefile.pre.in
  	      -DSVNVERSION="\"`LC_ALL=C $(SVNVERSION)`\"" \
  	      -DHGVERSION="\"`LC_ALL=C $(HGVERSION)`\"" \
  	      -DHGTAG="\"`LC_ALL=C $(HGTAG)`\"" \
-@@ -532,7 +538,7 @@
+@@ -579,7 +585,7 @@ Modules/getbuildinfo.o: $(PARSER_OBJS) \
  	      -o $@ $(srcdir)/Modules/getbuildinfo.c
  
  Modules/getpath.o: $(srcdir)/Modules/getpath.c Makefile
@@ -181,17 +181,17 @@ Index: b/Makefile.pre.in
  		-DPREFIX='"$(prefix)"' \
  		-DEXEC_PREFIX='"$(exec_prefix)"' \
  		-DVERSION='"$(VERSION)"' \
-@@ -540,7 +546,7 @@
+@@ -587,7 +593,7 @@ Modules/getpath.o: $(srcdir)/Modules/get
  		-o $@ $(srcdir)/Modules/getpath.c
  
  Modules/python.o: $(srcdir)/Modules/python.c
 -	$(MAINCC) -c $(PY_CFLAGS) -o $@ $(srcdir)/Modules/python.c
 +	$(MAINCC) -c $(PY_CORE_CFLAGS) -o $@ $(srcdir)/Modules/python.c
  
+ Modules/posixmodule.o: $(srcdir)/Modules/posixmodule.c $(srcdir)/Modules/posixmodule.h
  
- # Use a stamp file to prevent make -j invoking pgen twice
-@@ -551,7 +557,7 @@
- 		-touch Parser/pgen.stamp
+@@ -604,7 +610,7 @@ $(GRAMMAR_C): $(GRAMMAR_H) $(GRAMMAR_INP
+ 		touch $(GRAMMAR_C)
  
  $(PGEN):	$(PGENOBJS)
 -		$(CC) $(OPT) $(LDFLAGS) $(PGENOBJS) $(LIBS) -o $(PGEN)
@@ -199,7 +199,7 @@ Index: b/Makefile.pre.in
  
  Parser/grammar.o:	$(srcdir)/Parser/grammar.c \
  				$(srcdir)/Include/token.h \
-@@ -571,10 +577,10 @@
+@@ -626,10 +632,10 @@ $(AST_C): $(AST_ASDL) $(ASDLGEN_FILES)
  Python/compile.o Python/symtable.o Python/ast.o: $(GRAMMAR_H) $(AST_H)
  
  Python/getplatform.o: $(srcdir)/Python/getplatform.c
@@ -212,7 +212,7 @@ Index: b/Makefile.pre.in
  
  Objects/unicodectype.o:	$(srcdir)/Objects/unicodectype.c \
  				$(srcdir)/Objects/unicodetype_db.h
-@@ -1157,7 +1163,7 @@
+@@ -1234,7 +1240,7 @@ config.status:	$(srcdir)/configure
  
  # Some make's put the object file in the current directory
  .c.o:
@@ -225,7 +225,7 @@ Index: b/Modules/makesetup
 ===================================================================
 --- a/Modules/makesetup
 +++ b/Modules/makesetup
-@@ -219,7 +219,7 @@
+@@ -219,7 +219,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
  			case $doconfig in
  			no)	cc="$cc \$(CCSHARED) \$(CFLAGS) \$(CPPFLAGS)";;
  			*)
@@ -238,8 +238,8 @@ Index: b/configure.ac
 ===================================================================
 --- a/configure.ac
 +++ b/configure.ac
-@@ -507,14 +507,13 @@
- (it is also a good idea to do 'make clean' before compiling)])
+@@ -607,14 +607,13 @@ if test "$MACHDEP" = "irix6" && test "$C
+     fi
  fi
  
 -# If the user set CFLAGS, use this instead of the automatically
@@ -263,7 +263,7 @@ Index: b/Lib/distutils/sysconfig.py
 ===================================================================
 --- a/Lib/distutils/sysconfig.py
 +++ b/Lib/distutils/sysconfig.py
-@@ -322,11 +322,19 @@
+@@ -319,11 +319,19 @@ def parse_makefile(fn, g=None):
                      done[n] = v
  
      # do variable interpolation here
@@ -286,7 +286,7 @@ Index: b/Lib/distutils/sysconfig.py
                  n = m.group(1)
                  found = True
                  if n in done:
-@@ -337,25 +345,47 @@
+@@ -334,25 +342,47 @@ def parse_makefile(fn, g=None):
                  elif n in os.environ:
                      # do it like make: fall back to environment
                      item = os.environ[n]

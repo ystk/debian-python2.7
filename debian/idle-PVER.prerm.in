@@ -1,8 +1,10 @@
-#! /bin/sh -e
+#! /bin/sh
 #
 # sample prerm script for the Debian idle-@PVER@ package.
 # Written 1998 by Gregor Hoffleit <flight@debian.org>.
 #
+
+set -e
 
 PACKAGE=`basename $0 .prerm`
 

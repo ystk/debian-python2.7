@@ -6,3 +6,6 @@
 
 # doesn't support any newer versions
 @PVER@ source: build-depends-on-versioned-berkeley-db
+
+# using the system libffi
+@PVER@ source: outdated-autotools-helper-file

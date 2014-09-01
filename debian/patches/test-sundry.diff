@@ -1,8 +1,10 @@
 # DP: test_sundry: Don't fail on import of the profile and pstats module
 
+Index: b/Lib/test/test_sundry.py
+===================================================================
 --- a/Lib/test/test_sundry.py
 +++ b/Lib/test/test_sundry.py
-@@ -62,7 +62,11 @@
+@@ -60,7 +60,11 @@ class TestUntestedModules(unittest.TestC
              import os2emxpath
              import pdb
              import posixfile

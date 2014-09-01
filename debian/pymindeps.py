@@ -111,7 +111,7 @@ excluded_imports = {
     'copy': set(('reprlib',)),
     'difflib': set(('doctest',)),
     'hashlib': set(('logging',)),
-    #'hashlib': set(('_hashlib', '_md5', '_sha', '_sha256','_sha512',)),
+    'hashlib': set(('_hashlib', '_md5', '_sha', '_sha256','_sha512',)),
     'heapq': set(('doctest',)),
     'inspect': set(('compiler',)),
     'os': set(('nt', 'ntpath', 'os2', 'os2emxpath', 'mac', 'macpath',
@@ -123,7 +123,7 @@ excluded_imports = {
     'tempfile': set(('dummy_thread',)),
     'subprocess': set(('threading',)),
     'shutil': set(('distutils', 'tarfile', 'zipfile')),
-    'sysconfig': set(('pprint',)),
+    'sysconfig': set(('pprint', '_osx_support')),
     }
 
 def main(argv):

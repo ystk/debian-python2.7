@@ -6,3 +6,6 @@
 
 # just the gdb debug file
 @PVER@-dbg binary: python-script-but-no-python-dep
+
+# pointless lintian ...
+@PVER@-dbg binary: hardening-no-fortify-functions

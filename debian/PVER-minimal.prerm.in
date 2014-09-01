@@ -1,7 +1,6 @@
-#! /bin/sh -e
+#! /bin/sh
 
-syssite=/usr/lib/@PVER@/site-packages
-localsite=/usr/local/lib/@PVER@/dist-packages
+set -e
 
 case "$1" in
     remove)
@@ -12,24 +11,17 @@ case "$1" in
 	    [ -x $hook ] || continue
 	    $hook rtremove @PVER@ || continue
 	done
-	dpkg -L @PVER@-minimal \
-	    | awk '/\.py$/ {print $0"c\n" $0"o"}' \
-	    | xargs rm -f >&2
 
 	if which update-binfmts >/dev/null; then
 	    update-binfmts --package @PVER@ --remove @PVER@ /usr/bin/@PVER@
 	fi
 
-	if [ -h $syssite ]; then
-	    rm -f $syssite
-	fi
+	localsite=/usr/local/lib/@PVER@/dist-packages
 	[ -d $localsite ] && rmdir $localsite 2>/dev/null || true
-	[ -d $(dirname $localsite) ] && rmdir $(dirname $localsite) 2>/dev/null || true
+	[ -d $(dirname $localsite) ] \
+	    && rmdir $(dirname $localsite) 2>/dev/null || true
         ;;
     upgrade)
-        dpkg -L @PVER@-minimal \
-	    | awk '/\.py$/ {print $0"c\n" $0"o"}' \
-	    | xargs rm -f >&2
         ;;
     deconfigure)
         ;;

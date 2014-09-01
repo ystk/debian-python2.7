@@ -1,12 +1,820 @@
-python2.7 (2.7.3-6) unstable; urgency=low
+python2.7 (2.7.8-6) unstable; urgency=medium
 
+  * distuils: For extension builds, always pass BASECFLAGS.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 23 Aug 2014 22:50:19 +0200
+
+python2.7 (2.7.8-5) unstable; urgency=medium
+
+  * Build-depend on dpkg-dev (>= 1.17.11).
+
+ -- Matthias Klose <doko@debian.org>  Mon, 18 Aug 2014 09:43:43 +0200
+
+python2.7 (2.7.8-4) unstable; urgency=medium
+
+  * distutils: For extension builds pass the CPPFLAGS, CFLAGS, LDFLAGS
+    used for the python build when these flags cannot be found in the
+    environment.
+  * Don't use the system python during the build.
+  * Build using autotools-dev. Closes: #756772.
+  * Pass AR and RANLIB for lto enabled builds.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 10 Aug 2014 13:45:31 +0200
+
+python2.7 (2.7.8-3) unstable; urgency=medium
+
+  * Call dpkg -L in the maintainer scripts with an architecture qualifier
+    for M-A: same packages. Closes: #736385.
+  * Apply the plat-linux2_mips patch for mips64 and mips64el. Closes: #755578.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 26 Jul 2014 15:32:47 +0200
+
+python2.7 (2.7.8-2) unstable; urgency=medium
+
+  * Revert the backport of issue #1856 (avoid daemon thread problems
+    at shutdown). Issue #21963. Apparently ceph has issues with it.
+    Closes: #754341.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 12 Jul 2014 10:19:55 +0200
+
+python2.7 (2.7.8-1) unstable; urgency=medium
+
+  * Python 2.7.8 release.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 04 Jul 2014 14:41:31 +0200
+
+python2.7 (2.7.7-2) unstable; urgency=medium
+
+  * Re-enable the test_pydoc, test_tools, test_subprocess and test_uuid
+    autopkg tests.
+  * In the autopkg tests, make $ADTTMP accessible to the su user.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 03 Jun 2014 10:13:57 +0200
+
+python2.7 (2.7.7-1) unstable; urgency=medium
+
+  * Python 2.7.7 release.
+  * Refresh patches.
+  * In the autopkg tests, set HOME to the temporary home directory after
+    the su call.
+  * Expect test failures in the distutils autopkg tests.
+  * Disable the test_solaris_enable_shared test.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 02 Jun 2014 10:53:46 +0200
+
+python2.7 (2.7.7~rc1-1) unstable; urgency=medium
+
+  * Python 2.7.7 release candidate 1.
+  * Run the testsuite in a temporary home directory.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 21 May 2014 12:15:26 +0100
+
+python2.7 (2.7.6-8) unstable; urgency=medium
+
+  * Set a temporary home directory for the build and the autopkg tests.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 22 Mar 2014 14:31:54 +0100
+
+python2.7 (2.7.6-8) unstable; urgency=medium
+
+  * Update to 20140322, taken from the 2.7 branch.
+  * Install updated idle icons. LP: #1295969.
+  * Update the ssl.match_hostname backport: Change behavior of
+    ``ssl.match_hostname()`` to follow RFC 6125, for security reasons.
+    It now doesn't match multiple wildcards nor wildcards inside IDN fragments.
+    Closes: #740255.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 22 Mar 2014 14:31:54 +0100
+
+python2.7 (2.7.6-7) unstable; urgency=medium
+
+  * Include test data for test_imghdr test.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 26 Feb 2014 01:16:47 +0100
+
+python2.7 (2.7.6-6) unstable; urgency=high
+
+  * Update to 20140225, taken from the 2.7 branch.
+    - CVE-2014-1912. Fix issue 20246, buffer overflow in socket.recvfrom_into.
+  * Build without ffi on or1k. Closes: #738519.
+  * Allow loading of extensions in the sqlite module. Closes: #739555.
+  * Update autopkg tests (Martin Pitt):
+    - Don't fail if apport is not installed.
+    - Call su with explicit shell, as nobody has nologin as default shell now.
+    - Only use $SUDO_USER if that user actually exists in the testbed.
+    - Drop obsolete chowning of $TMPDIR and $ADTTMP; with current autopkgtest
+      $TMPDIR has appropriate permissions, and $ADTTMP is not being used.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 25 Feb 2014 10:51:27 +0100
+
+python2.7 (2.7.6-5) unstable; urgency=medium
+
+  * Update to 20140111, taken from the 2.7 branch.
+  * Build-depend on net-tools, required for the test_uuid test.
+  * Build-depend on the default Tcl/Tk.
+  * Add two new autopkg tests to run the failing tests.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 11 Jan 2014 14:52:11 +0100
+
+python2.7 (2.7.6-4) unstable; urgency=medium
+
+  * Update to 20131230, taken from the 2.7 branch.
+  * Disable sphinx refcounting extension, removed in sphinx-1.2.
+    Closes: #733404.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 30 Dec 2013 15:17:09 +0100
+
+python2.7 (2.7.6-3) unstable; urgency=low
+
+  * Update to 20131206, taken from the 2.7 branch.
+  * Disable the test_uuid autopkg test, hanging, missing entropy?
+  * Drop python dependency in libpython2.7-dbg.
+  * Revert patch from http://bugs.python.org/issue19352 as it completely breaks
+    unittest discovery on Debian/Ubuntu. LP: #1255505.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 06 Dec 2013 20:35:22 +0100
+
+python2.7 (2.7.6-2) unstable; urgency=low
+
+  * Update to 20131121, taken from the 2.7 branch.
+  * Fix test support when the running kernel doesn't handle port reuse.
+  * Build-depend on libdb-dev (<< 1:6.0) instead of a specific db version.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 22 Nov 2013 13:06:15 +0100
+
+python2.7 (2.7.6-1) unstable; urgency=low
+
+  * Python 2.7.6 release.
+  * Update to 20131119, taken from the 2.7 branch.
+  * For autopkg tests, only run the separate tests when defined.
+  * Don't run the curses autopkg test.
+  * Disable running the testsuite on mipsn32(el) and mips64(el),
+    requested by YunQiang Su. Closes: #719057.
+
+ -- Matthias Klose <doko@ubuntu.com>  Tue, 19 Nov 2013 11:45:31 +0100
+
+python2.7 (2.7.5-8) unstable; urgency=medium
+
+  * Update to 20130917, taken from the 2.7 branch.
+    - Fix SSL module to handle NULL bytes inside subjectAltNames general
+      names (CVE-2013-4238). Closes: #719566.
+  * Don't run the curses autopkg test.
+  * Set Multi-Arch attributes for binary packages.
+  * Fix multiarch include header for sparc64. Closes: #714802, #715063.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 17 Sep 2013 15:47:45 +0200
+
+python2.7 (2.7.5-7) unstable; urgency=low
+
+  * Update to 20130803, taken from the 2.7 branch.
+  * Update package descriptions (Filipus Klutiero). Closes: #715801.
+  * Fix multiarch include header for sparc64. Closes: #715063.
+  * Move removal of the sitecustomize.py file into the libpython-minimal
+    postrm. Closes: #709964.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 04 Aug 2013 11:56:52 +0200
+
+python2.7 (2.7.5-6) unstable; urgency=low
+
+  * Update to 20130613, taken from the 2.7 branch.
+  * Refresh patches.
+  * Don't run consistency check for cross builds.
+  * Really skip byte compile of non-existing sitecustomize.py.
+  * Fix the multiarch header file for mips64 (YunQiang Su). Closes: #710374.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 13 Jun 2013 13:06:51 +0200
+
+python2.7 (2.7.5-5) unstable; urgency=low
+
+  * Update to 20130602, taken from the 2.7 branch.
+  * Fix possible abuse of ssl.match_hostname() for denial of service
+    using certificates with many wildcards (CVE-2013-2099). Closes: #709066.
+  * Don't try to byte-compile sitecustomize.py if the target of the
+    symlink doesn't exist anymore. Closes: #709157.
+  * Handle byte compilation in python2.7{-minimal,}, byte removal in
+    libpython2.7{-minimal,-stdlib}. Closes: #709964.
+  * Backport patch to fix issue #13146, possible race conditions when writing
+    .pyc/.pyo files in py_compile.py (Barry Warsaw). LP: #1058884.
+  * Fix issue #17988, internal error in regular expression engine on 32bit
+    targets (closes: #710315).
+
+ -- Matthias Klose <doko@debian.org>  Sun, 02 Jun 2013 15:11:19 +0200
+
+python2.7 (2.7.5-4) unstable; urgency=low
+
+  * Move the libc dependency of -minimal from Depends to Pre-Depends.
+    Closes: #708831.
+  * Disable the test_io test on armel, armhf, mips, mipsel. Hangs the
+    buildds.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 20 May 2013 12:21:06 +0200
+
+python2.7 (2.7.5-3) unstable; urgency=high
+
+  * Fix the multiarch header file for ppc64. Closes: #708641.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 18 May 2013 20:18:38 +0200
+
+python2.7 (2.7.5-2) unstable; urgency=low
+
+  * Only run the _multiprocessing build check on linux targets.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 15 May 2013 22:09:30 +0200
+
+python2.7 (2.7.5-1) unstable; urgency=low
+
+  * Python 2.7.5 release.
+  * Set the platinclude dir back to the non-multiarch include path,
+    where the multiarch pyconfig.h compatibility header is found.
+  * Fix issue #17703: Fix a regression where an illegal use of Py_DECREF()
+    after interpreter finalization can cause a crash.
+  * Issue #17754, setting LANG and LC_ALL for the compiler call in ctypes/util.
+  * Issue #17761, platform._parse_release_file doesn't close the
+    /etc/lsb-release file, and doesn't know about 'Ubuntu'.
+  * Fix autopkg tests.
+  * Re-enable lto and pgo optimized builds, accidentally disabled for the
+    last upload.
+  * more autopkg test fixes.
+  * Link the ctypes extension with the shared libffi library.
+  * Fix a distutils test with the deb install layout.
+  * Move lib2to3 library into libpython2.7-stdlib. Closes: #705078.
+  * Don't set yet any Multi-Arch: attributes in Debian.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 15 May 2013 15:02:13 +0200
+
+python2.7 (2.7.4-2) experimental; urgency=low
+
+  * Idle updates:
+    - Issue #17657: Show full Tk version in IDLE's about dialog.
+    - Issue #17613: Prevent traceback when removing syntax colorizer.
+    - Issue #1207589: Backwards-compatibility patch for right-click menu.
+    - Issue #16887: Now accepts Cancel in tabify/untabify dialog box.
+    - Issue #14254: Now handles readline correctly across shell restarts.
+    - Issue #17614: No longer raises exception when quickly closing a file.
+    - Issue #6698: Now opens just an editor window when configured to do so.
+    - Issue #8900: Using keyboard shortcuts in IDLE to open a file no longer
+      raises an exception.
+    - Issue #6649: Fixed missing exit status.
+  * Build a libpython2.7-testsuite package. LP: #301629.
+  * Add autopkg tests to run the installed testsuite in normal and debug
+    mode.
+  * Re-enable running the tests during the build.
+  * Add the io and _io modules to libpython2.7-minimal.
+  * Backport ssl.CertificateError as well. Closes: #626539. LP: #1166344.
+  * Don't ship an uncompress python man page. Closes: #705079.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 11 Apr 2013 00:44:48 +0200
+
+python2.7 (2.7.4-1ubuntu4) raring; urgency=low
+
+  * Build a libpython2.7-testsuite package. LP: #301629.
+  * Add autopkg tests to run the installed testsuite in normal and debug
+    mode.
+  * Re-enable running the tests during the build.
+  * Idle updates:
+    - Issue #17657: Show full Tk version in IDLE's about dialog.
+    - Issue #17613: Prevent traceback when removing syntax colorizer.
+    - Issue #1207589: Backwards-compatibility patch for right-click menu.
+    - Issue #16887: Now accepts Cancel in tabify/untabify dialog box.
+    - Issue #14254: Now handles readline correctly across shell restarts.
+    - Issue #17614: No longer raises exception when quickly closing a file.
+    - Issue #6698: Now opens just an editor window when configured to do so.
+    - Issue #8900: Using keyboard shortcuts in IDLE to open a file no longer
+      raises an exception.
+    - Issue #6649: Fixed missing exit status.
+
+ -- Matthias Klose <doko@ubuntu.com>  Tue, 09 Apr 2013 17:53:02 +0200
+
+python2.7 (2.7.4-1ubuntu3) raring; urgency=low
+
+  * Add the io and _io modules to libpython2.7-minimal. LP: #1165172.
+  * Add missing import for the ssl module. LP: #1166644.
+
+ -- Matthias Klose <doko@ubuntu.com>  Tue, 09 Apr 2013 12:11:12 +0200
+
+python2.7 (2.7.4-1ubuntu2) raring; urgency=low
+
+  * Backport ssl.CertificateError as well. Closes: #626539. LP: #1166344.
+
+ -- Matthias Klose <doko@ubuntu.com>  Mon, 08 Apr 2013 20:59:52 +0200
+
+python2.7 (2.7.4-1ubuntu1) raring; urgency=low
+
+  * Merge with Debian; remaining changes:
+    - Build-depend on python:any instead of python.
+
+ -- Matthias Klose <doko@ubuntu.com>  Sat, 06 Apr 2013 17:45:49 +0200
+
+python2.7 (2.7.4-1) experimental; urgency=low
+
+  * Python 2.7.4 release.
+    - Issue #17550: Fix the --enable-profiling configure switch.
+    - Issue #15801 (again): With string % formatting, relax the type check
+      for a mapping such that any type with a __getitem__ can be used on the
+      right hand side.
+    - Issue #17625: In IDLE, close the replace dialog after it is used.
+    - Issue #17531: Fix tests that thought group and user ids were always
+      the int type. Also, always allow -1 as a valid group and user id.
+    - Issue 17538: Document XML vulnerabilties
+  * Byte-compile files in libpython2.7-dbg.
+  * libpython2.7-minimal: Break earlier python2.7-minimal versions.
+    Closes: #704084. LP: #1157687.
+  * Call python with -E -S for the byte compilation.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 06 Apr 2013 16:38:57 +0200
+
+python2.7 (2.7.4~rc1-4) experimental; urgency=low
+
+  * Fix byte-compiliation/-removal for the split-out library packages.
+    LP: #1160944.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 30 Mar 2013 12:51:58 +0100
+
+python2.7 (2.7.4~rc1-3) experimental; urgency=low
+
+  * Fix webbrowser update. Closes: #703872. LP: #1159636.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 25 Mar 2013 14:33:50 +0100
+
+python2.7 (2.7.4~rc1-2) experimental; urgency=low
+
+  * Backport webbrowser updates from 3.3. Closes: #700429.
+  * Build again using db-5.1 instead of db-5.3.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 24 Mar 2013 18:27:57 +0100
+
+python2.7 (2.7.4~rc1-1) experimental; urgency=low
+
+  * Python 2.7.4 release candidate 1.
+    - Issue #10211: Buffer objects expose the new buffer interface internally.
+    - Issue #10212: cStringIO and struct.unpack support new buffer objects.
+    - Issue #12098: multiprocessing on Windows now starts child processes
+      using the same sys.flags as the current process.
+    - Issue #8862: Fixed curses cleanup when getkey is interrputed by a signal.
+    - Issue #9090: When a socket with a timeout fails with EWOULDBLOCK or
+      EAGAIN, retry the select() loop instead of bailing out.
+    - Issue #1285086: Get rid of the refcounting hack and speed up
+      urllib.unquote().
+    - Issue #17368: Fix an off-by-one error in the Python JSON decoder
+      that caused a failure while decoding empty object literals when
+      object_pairs_hook was specified.
+    - Issue #17477: Update the bsddb module to pybsddb 5.3.0, supporting
+      db-5.x, and dropping support for db-4.1 and db-4.2.
+    - Issue #17192: Update the ctypes module's libffi to v3.0.13.  This
+      specifically addresses a stack misalignment issue on x86 and issues on
+      some more recent platforms.
+    - Issue #11420: make test suite pass with -B/DONTWRITEBYTECODE set.
+    - Issue #17299: Add test coverage for cPickle with file objects
+      and general IO objects.
+    - Issue #11963: remove human verification from test_parser and
+      test_subprocess.
+    - Issue #16004: Add `make touch`.
+    - Issue #17047: remove doubled words in docs and docstrings
+  * Rework the sysconfigdata patch into something upstreamable.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 24 Mar 2013 01:56:36 +0100
+
+python2.7 (2.7.3-16ubuntu2) raring; urgency=low
+
+  * Update to 20130315, taken from the 2.7 branch.
+    - Issue #1285086: Get rid of the refcounting hack and speed
+      up urllib.unquote().
+    - Issue #17368: Fix an off-by-one error in the Python JSON decoder
+      that caused a failure while decoding empty object literals when
+      object_pairs_hook was specified.
+    - Issue #17299: Add test coverage for cPickle with file objects and general
+      IO objects.
+    - Issue #11963: Remove human verification from test_parser and
+      test_subprocess.
+    - Issue #16004: Add `make touch`.
+    - Issue #17412: Update 2.7 Doc/make.bat to also use sphinx-1.0.7.
+    - Issue #17047: Remove doubled words in docs and docstrings.
+  * Revert the patch for Issue #1159051, handling corrupted gzip files
+    with unexpected EOF. LP: #1116079.
+
+ -- Matthias Klose <doko@ubuntu.com>  Fri, 15 Mar 2013 12:20:10 -0700
+
+python2.7 (2.7.3-16ubuntu1) raring; urgency=low
+
+  * Merge with Debian; remaining changes:
+    - Build-depend on python:any instead of python.
+  * Update symbols files.
+
+ -- Matthias Klose <doko@ubuntu.com>  Fri, 08 Mar 2013 14:30:55 +0800
+
+python2.7 (2.7.3-16) experimental; urgency=low
+
+  * Update to 20130308, taken from the 2.7 branch.
+    - Issue #10156: In the interpreter's initialization phase, unicode globals
+      are now initialized dynamically as needed.
+    - Issue #16975: Fix error handling bug in the escape-decode decoder.
+    - Issue #9290: In IDLE the sys.std* streams now implement io.TextIOBase
+      interface and support all mandatory methods and properties.
+    - Issue #13454: Fix a crash when deleting an iterator created by
+      itertools.tee() if all other iterators were very advanced before.
+    - Issue #3754: fix typo in pthread AC_CACHE_VAL.
+    - Issue #17029: Let h2py search the multiarch system include directory.
+    - Issue #16445: Fixed potential segmentation fault when deleting an
+      exception message.
+    - Issue #17275: Corrected class name in init error messages of the
+      C version of BufferedWriter and BufferedRandom.
+    - Issue #7963: Fixed misleading error message that issued when object is
+      called without arguments.
+    - Issue #5308: Raise ValueError when marshalling too large object (a
+      sequence with size >= 2**31), instead of producing illegal marshal data.
+    - Issue #17043: The unicode-internal decoder no longer read past the end of
+      input buffer.
+    - Issue #16979: Fix error handling bugs in the unicode-escape-decode
+      decoder.
+    - Issue #17278: Fix a crash in heapq.heappush() and heapq.heappop() when
+      the list is being resized concurrently.
+    - Issue #17018: Make Process.join() retry if os.waitpid() fails with EINTR.
+    - Issue #14720: sqlite3: Convert datetime microseconds correctly.
+    - Issue #17225: JSON decoder now counts columns in the first line starting
+      with 1, as in other lines.
+    - Issue #7842: backported fix for py_compile.compile() syntax error
+      handling.
+    - Issue #13153: Tkinter functions now raise TclError instead of ValueError
+      when a unicode argument contains non-BMP character.
+    - Issue #9669: Protect re against infinite loops on zero-width matching in
+      non-greedy repeat.
+    - Issue #13169: The maximal repetition number in a regular expression
+      has been increased from 65534 to 2147483647 (on 32-bit platform) or
+      4294967294 (on 64-bit).
+    - Issue #11311: StringIO.readline(0) now returns an empty string
+      as all other file-like objects.
+    - Issue #16800: tempfile.gettempdir() no longer left temporary files when
+      the disk is full.  Original patch by Amir Szekely.
+    - Issue #13555: cPickle now supports files larger than 2 GiB.
+    - Issue #17052: unittest discovery should use self.testLoader.
+    - Issue #4591: Uid and gid values larger than 2**31 are supported now.
+    - Issue #17141: random.vonmisesvariate() no more hangs for large kappas.
+    - Issue #17149: Fix random.vonmisesvariate to always return results in
+      the range [0, 2*math.pi].
+    - Issue #1470548: XMLGenerator now works with UTF-16 and UTF-32 encodings.
+    - Issue #6975: os.path.realpath() now correctly resolves multiple nested
+      symlinks on POSIX platforms.
+    - Issue #17156: pygettext.py now correctly escapes non-ascii characters.
+    - Issue #7358: cStringIO.StringIO now supports writing to and reading from
+      a stream larger than 2 GiB on 64-bit systems.
+    - IDLE was displaying spurious SystemExit tracebacks when running scripts
+      that terminated by raising SystemExit (i.e. unittest and turtledemo).
+    - Issue #10355: In SpooledTemporaryFile class mode and name properties and
+      xreadlines method now work for unrolled files.  encoding and newlines
+    - Issue #16686: Fixed a lot of bugs in audioop module.
+    - Issue #17073: Fix some integer overflows in sqlite3 module.
+    - Issue #6083: Fix multiple segmentation faults occured when
+      PyArg_ParseTuple parses nested mutating sequence.
+    - Issue #5289: Fix ctypes.util.find_library on Solaris.
+    - Issue #17106: Fix a segmentation fault in io.TextIOWrapper when an
+      underlying stream or a decoder produces data of an unexpected type (i.e.
+      when io.TextIOWrapper initialized with text stream or use bytes-to-bytes
+      codec).
+    - Issue #13994: Add compatibility alias in distutils.ccompiler for
+      distutils.sysconfig.customize_compiler.
+    - Issue #15633: httplib.HTTPResponse is now mark closed when the server
+      sends less than the advertised Content-Length.
+    - Issue #15881: Fixed atexit hook in multiprocessing.
+    - Issue #14340: Upgrade the embedded expat library to version 2.1.0.
+    - Issue #11159: SAX parser now supports unicode file names.
+    - Issue #6972: The zipfile module no longer overwrites files outside of
+      its destination path when extracting malicious zip files.
+    - Issue #17049: Localized calendar methods now return unicode if a locale
+      includes an encoding and the result string contains month or weekday (was
+      regression from Python 2.6).
+    - Issue #4844: ZipFile now raises BadZipfile when opens a ZIP file with an
+      incomplete "End of Central Directory" record.
+    - Issue #15505: `unittest.installHandler` no longer assumes SIGINT handler
+      is set to a callable object.
+    - Issue #17051: Fix a memory leak in os.path.isdir() on Windows.
+    - Issue #12268: The io module file object write methods no longer abort
+      early when a write system calls is interrupted (EINTR).
+    - Issue #17249: convert a test in test_capi to use unittest and reap
+      threads.
+    - We now run both test_email.py and test_email_renamed.py when running the
+      test_email regression test.  test_email_renamed contains some tests that
+      test_email does not.
+    - Issue #17041: Fix testing when Python is configured with the
+      --without-doc-strings option.
+    - Issue #5033: Fix building of the sqlite3 extension module when the
+      SQLite library version has "beta" in it.
+    - Issue #17228: Fix building without pymalloc.
+    - Issue #17086: Backport the patches from the 3.3 branch to cross-build
+      the package.
+    - Issue #16406: combine the pages for uploading and registering to PyPI.
+    - Issue #16403: Document how distutils uses the maintainer field in
+      PKG-INFO.
+    - Issue #16695: Document how glob handles filenames starting with a dot.
+    - Issue #8890: Stop advertising an insecure practice by replacing uses
+      of the /tmp directory with better alternatives in the documentation.
+    - Issue #17203: add long option names to unittest discovery docs.
+  * python2.7-dbg, libpython2.7-dbg: Drop dependency on python.
+  * python2.7-dbg: Make gdb (not gdb-minimal) a recommendation.
+  * python2.7: Replace python2.7-minimal (<< 2.7.3-7). Closes: #702005.
+  * Build the _md5, _sha1, _sha256 and _sha512 extension modules.
+  * Fix multiarch include for AArch64.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 08 Mar 2013 09:54:59 +0800
+
+python2.7 (2.7.3-15) experimental; urgency=low
+
+  * Update to 20130124, taken from the 2.7 branch.
+    - Issue #14850: Now a charmap decoder treats U+FFFE as "undefined mapping"
+      in any mapping, not only in a Unicode string.
+    - Issue #11461: Fix the incremental UTF-16 decoder.
+    - Issue #1159051: GzipFile now raises EOFError when reading a corrupted
+      file with truncated header or footer.
+    - Issue #16992: On Windows in signal.set_wakeup_fd, validate the file
+      descriptor argument.
+    - Issue #15861: tkinter now correctly works with lists and tuples
+      containing strings with whitespaces, backslashes or unbalanced braces.
+    - Issue #10527: Use poll() instead of select() for multiprocessing pipes.
+    - Issue #9720: zipfile now writes correct local headers for files larger
+      than 4 GiB.
+    - Issue #16829: IDLE printing no longer fails if there are spaces or other
+      special characters in the file path.
+    - Issue #13899: \A, \Z, and \B now correctly match the A, Z, and B literals
+      when used inside character classes (e.g. '[\A]').
+    - Issue #16398: Optimize deque.rotate() so that it only moves pointers
+      and doesn't touch the underlying data with increfs and decrefs.
+    - Issue #15109: Fix regression in sqlite3's iterdump method where it would
+      die with an encoding error if the database contained string values
+      containing non-ASCII.
+    - Issue #15545: Fix regression in sqlite3's iterdump method where it was
+      failing if the connection used a row factory (such as sqlite3.Row) that
+      produced unsortable objects.
+    - Issue #16953: Fix socket module compilation on platforms with
+      HAVE_BROKEN_POLL.
+    - Issue #16836: Enable IPv6 support even if IPv6 is disabled on the
+      build host.
+    - Issue #15539: Fix a number of bugs in Tools/scripts/pindent.py.
+  * Backport cross-build support from python3.3. LP: #873007.
+  * Add pyconfig.h compatibility headers. Closes: #695667. LP: #1094246.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 24 Jan 2013 14:57:08 +0100
+
+python2.7 (2.7.3-14) experimental; urgency=low
+
+  * Update to 20130105, taken from the 2.7 branch.
+    - Issue #16367: Fix FileIO.readall() on Windows for files larger than 2 GB.
+    - Issue #15516: Fix a bug in PyString_FromFormat where it failed
+      to properly ignore errors from a __int__() method.
+    - Issue #16839: Fix a segfault when calling unicode() on a classic class
+      early in interpreter initialization.
+    - Issue #16761: Calling ``int()`` and ``long()`` with *base* argument only
+      now raises TypeError.
+    - Issue #16828: Fix error incorrectly raised by bz2.compress('').
+      LP: #1090043.
+    - Issue #16819: IDLE method completion now correctly works for unicode
+      literals.
+    - Issue 10527: make multiprocessing use poll() instead of select()
+      if available.
+    - Issue #16485: Now file descriptors are closed if file header patching
+      failed on closing an aifc file.
+    - Issue #12065: connect_ex() on an SSL socket now returns the original
+      errno when the socket's timeout expires (it used to return None).
+    - Issue #16504: IDLE now catches SyntaxErrors raised by tokenizer.
+    - Issue #16702: test_urllib2_localnet tests now correctly ignores proxies
+      for localhost tests.
+    - Issue #16713: Fix the parsing of tel url with params using urlparse
+      module.
+    - Issue #16443: Add docstrings to regular expression match objects.
+    - Issue #8853: Allow port to be of type long for socket.getaddrinfo().
+    - Issue #16597: In buffered and text IO, call close() on the underlying
+      stream if invoking flush() fails.
+    - Issue #15701: Fix HTTPError info method call to return the headers
+      information.
+    - Issue #14958: Change IDLE systax highlighting to recognize all string
+      and byte literals currently supported in Python 2.7.
+    - Issue #15324: Fix regrtest parsing of --fromfile and --randomize options.
+    - Issue #16618: Add more regression tests for glob.
+    - Issue #13094: add "Why do lambdas defined in a loop with different values
+      all return the same result?" programming FAQ.
+  * python-config --help returns with an exit value 0. LP: #1093860.
+  * Update package description for the -dbg packages. Closes: #696616.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 05 Jan 2013 17:22:13 +0100
+
+python2.7 (2.7.3-13) experimental; urgency=low
+
+  * Update to 20121220, taken from the 2.7 branch.
+    - Issue #16646: ftplib.FTP.makeport() might lose socket error details.
+    - Issue #16298: In HTTPResponse.read(), close the socket when there is no
+      Content-Length and the incoming stream is finished.
+  * Filter out -D_FORTIFY_SOURCE for the debug builds. Meaningless.
+  * Install the _sysconfigdata.py and python-config.sh from both shared
+    builds, but don't link extensions against the shared python library.
+    Closes: #695979.
+  * Fix python2.7-dbg-config symlink. LP: #1091615.
   * During purge, check for existance of /etc/python2.7 before trying
     to remove it. Closes: #696023.
-  * Revert the fix for issue #14635, requested by the Debian release team.
-  * Revert the fixes for issues #15512, #15487, #15469, #15424, #15402,
-    requested by the Debian release team.
+  * python2.7-dev, libpython2.7-dev: Drop the dependency on libssl-dev.
+  * debian/patches/sys-multiarch.diff: Expose multiarch tuple as
+    sys._multiarch (Barry Warsaw). Closes: #695958.
+    Note: Usage of sysconfig.get_config_var('MULTIARCH') is preferred.
 
- -- Matthias Klose <doko@debian.org>  Wed, 02 Jan 2013 01:12:22 +0100
+ -- Matthias Klose <doko@debian.org>  Thu, 20 Dec 2012 16:57:49 +0100
+
+python2.7 (2.7.3-12) experimental; urgency=low
+
+  * Fix typo in pkgconfig file. Closes: #695671, LP: #1088988.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 10 Dec 2012 19:10:32 +0100
+
+python2.7 (2.7.3-11) experimental; urgency=low
+
+  * Update to 20121210, taken from the 2.7 branch.
+    - Issue #16602: When a weakref's target was part of a long deallocation
+      chain, the object could remain reachable through its weakref even though
+      its refcount had dropped to zero.
+    - Issue #16588: Silence unused-but-set warnings in Python/thread_pthread.
+    - Issue #16248: Disable code execution from the user's home directory by
+      tkinter when the -E flag is passed to Python.  Patch by Zachary Ware.
+    - Issue #16628: Fix a memory leak in ctypes.resize().
+    - Issue #13614: Fix setup.py register failure with invalid rst in
+      description.
+    - Issue #10182: The re module doesn't truncate indices to 32 bits anymore.
+    - Issue #16573: In 2to3, treat enumerate() like a consuming call, so
+      superfluous list() calls aren't added to filter(), map(), and zip()
+      which are directly passed enumerate().
+    - Issue #16476: Fix json.tool to avoid including trailing whitespace.
+    - Issue #16549: Add tests for json.tools.
+    - Issue #15990: Improve argument/parameter documentation.
+  * Use _sysconfigdata.py in distutils.sysconfig.
+  * Fix distutils.sysconfig.get_{config_h,makefile}_filename for multiarch.
+  * Backport ssl.match_hostname from Python3. Closes: #626539.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 10 Dec 2012 16:06:41 +0100
+
+python2.7 (2.7.3-10) experimental; urgency=low
+
+  * Update to 20121128, taken from the 2.7 branch.
+    - Issue #9011: Fix hacky AST code that modified the CST when compiling
+      a negated numeric literal.
+    - Issue #16306: Fix multiple error messages when unknown command line
+      parameters where passed to the interpreter.
+    - Issue #15379: Fix passing of non-BMP characters as integers for the
+      charmap decoder (already working as unicode strings).
+    - Issue #16453: Fix equality testing of dead weakref objects.
+    - Issue #9535: Fix pending signals that have been received but not yet
+      handled by Python to not persist after os.fork() in the child process.
+    - Issue #15001: fix segfault on "del sys.modules['__main__']".
+    - Issue #5057: the peepholer no longer optimizes subscription on unicode
+      literals (e.g. u'foo'[0]) in order to produce compatible pyc files
+      between narrow and wide builds.
+    - Issue #8401: assigning an int to a bytearray slice (e.g. b[3:4] = 5)
+      now raises an error.
+    - Issue #14700: Fix buggy overflow checks for large width and precision
+      in string formatting operations.
+    - Issue #16345: Fix an infinite loop when ``fromkeys`` on a dict subclass
+      received a nonempty dict from the constructor.
+    - Issue #6074: Ensure cached bytecode files can always be updated by the
+      user that created them, even when the source file is read-only.
+    - Issue #14783: Improve int() and long() docstrings and switch docstrings
+      for unicode(), slice(), range(), and xrange() to use multi-line
+      signatures.
+    - Issue #16030: Fix overflow bug in computing the `repr` of an xrange
+      object with large start, step or length.
+    - Issue #16029: Fix overflow bug occurring when pickling xranges with large
+      start, step or length.
+    - Issue #16037: Limit httplib's _read_status() function to work around
+      broken HTTP servers and reduce memory usage (backport of a 3.2 fix).
+    - Issue #13992: The trashcan mechanism is now thread-safe.  This eliminates
+      sporadic crashes in multi-thread programs when several long deallocator
+      chains ran concurrently and involved subclasses of built-in container
+      types.
+    - Issue #15801: Make sure mappings passed to '%' formatting are actually
+      subscriptable.
+    - Issue #15604: Update uses of PyObject_IsTrue() to check for and handle
+      errors correctly.
+    - Issue #15897: zipimport.c doesn't check return value of fseek().
+    - Issue #16369: Global PyTypeObjects not initialized with PyType_Ready(...).
+    - Issue #15033: Fix the exit status bug when modules invoked using
+      -m switch, return the proper failure return value (1).
+    - Issue #1160: Fix compiling large regular expressions on UCS2 builds.
+    - Issue #14313: zipfile now raises NotImplementedError when the compression
+      type is unknown.
+    - Issue #16408: Fix file descriptors not being closed in error conditions
+      in the zipfile module.
+    - Issue #16327: The subprocess module no longer leaks file descriptors
+      used for stdin/stdout/stderr pipes to the child when fork() fails.
+    - Issue #14396: Handle the odd rare case of waitpid returning 0 when not
+      expected in subprocess.Popen.wait().
+    - Issue #16411: Fix a bug where zlib.decompressobj().flush() might try
+      to access previously-freed memory.
+    - Issue #16350: zlib.decompressobj().decompress() now accumulates data from
+      successive calls after EOF in unused_data, instead of only saving the
+      argument to the last call. decompressobj().flush() now correctly sets
+      unused_data and unconsumed_tail. A bug in the handling of MemoryError
+      when setting the unconsumed_tail attribute has also been fixed.
+    - Issue #12759: sre_parse now raises a proper error when the name
+      of the group is missing.
+    - Issue #16152: fix tokenize to ignore whitespace at the end of the code
+      when no newline is found.
+    - Issue #1207589: Add Cut/Copy/Paste items to IDLE right click
+      Context Menu.
+    - Issue #16230: Fix a crash in select.select() when one the lists changes
+      size while iterated on.
+    - Issue #16228: Fix a crash in the json module where a list changes size
+      while it is being encoded.
+    - Issue #14897: Enhance error messages of struct.pack and struct.pack_into.
+    - Issue #12890: cgitb no longer prints spurious <p> tags in text
+      mode when the logdir option is specified.
+    - Issue #14398: Fix size truncation and overflow bugs in the bz2 module.
+    - Issue #5148: Ignore 'U' in mode given to gzip.open() and gzip.GzipFile().
+    - Issue #16220: wsgiref now always calls close() on an iterable response.
+    - Issue #16461: Wave library should be able to deal with 4GB wav files,
+      and sample rate of 44100 Hz.
+    - Issue #16176: Properly identify Windows 8 via platform.platform().
+    - Issue #15756: subprocess.poll() now properly handles errno.ECHILD to
+      return a returncode of 0 when the child has already exited or cannot
+      be waited on.
+    - Issue #12376: Pass on parameters in TextTestResult.__init__ super call.
+    - Issue #15222: Insert blank line after each message in mbox mailboxes.
+    - Issue #16013: Fix CSV Reader parsing issue with ending quote characters.
+    - Issue #15421: fix an OverflowError in Calendar.itermonthdates() after
+      datetime.MAXYEAR.
+    - Issue #15970: xml.etree.ElementTree now serializes correctly the
+      empty HTML elements 'meta' and 'param'.
+    - Issue #15676: Now "mmap" check for empty files before doing the
+      offset check.
+    - Issue #15340: Fix importing the random module when /dev/urandom cannot
+      be opened.  This was a regression caused by the hash randomization patch.
+    - Issue #15841: The readable(), writable() and seekable() methods of
+      io.BytesIO and io.StringIO objects now raise ValueError when the object
+      has been closed.
+    - Issue #16112: platform.architecture does not correctly escape argument to
+      /usr/bin/file.
+    - Issue #12776,#11839: call argparse type function (specified by
+      add_argument) only once. Before, the type function was called twice in
+      the case where the default was specified and the argument was given as
+      well.  This was especially problematic for the FileType type, as a
+      default file would always be opened, even if a file argument was
+      specified on the command line.
+    - Issue #15906: Fix a regression in argparse caused by the preceding change,
+      when action='append', type='str' and default=[].
+    - Issue #13370: Ensure that ctypes works on Mac OS X when Python is
+      compiled using the clang compiler
+    - Issue #15544: Fix Decimal.__float__ to work with payload-carrying NaNs.
+    - Issue #15199: Fix JavaScript's default MIME type to
+      application/javascript.
+    - Issue #15477: In cmath and math modules, add workaround for platforms
+      whose system-supplied log1p function doesn't respect signs of zeros.
+    - Issue #15908: Fix misbehaviour of the sha1 module when called on data
+      larger than 2**32 bytes.
+    - Issue #15910: Fix misbehaviour of _md5 and sha1 modules when "updating"
+      on data larger than 2**32 bytes.
+    - Fix the leak of a dict in the time module when used in an embedded
+      interpreter that is repeatedly initialized and shutdown and reinitialized.
+    - Issue #12268: File readline, readlines and read or readall methods
+      no longer lose data when an underlying read system call is interrupted
+      within an io module object.  IOError is no longer raised due to a read
+      system call returning EINTR from within these methods.
+    - Issue #16012: Fix a regression in pyexpat. The parser's UseForeignDTD()
+      method doesn't require an argument again.
+    - Issue #16559: Add more tests for the json module, including some from the
+      official test suite at json.org.
+    - Issue #16274: Fix test_asyncore on Solaris.
+    - Issue #15040: Close files in mailbox tests for PyPy compatibility.
+    - Issue #15802: Fix test logic in TestMaildir.test_create_tmp.
+    - Issue #15765: Extend a previous fix to Solaris and OpenBSD for quirky
+      getcwd() behaviour (issue #9185) to NetBSD as well.
+    - Issue #15615: Add some tests for the json module's handling of invalid
+      input data.
+    - Issue #15923: fix a mistake in asdl_c.py that resulted in a TypeError
+      after 2801bf875a24 (see #15801).
+    - Issue #11715: Fix multiarch detection without having Debian development
+      tools (dpkg-dev) installed.
+    - Issue #15819: Make sure we can build Python out-of-tree from a readonly
+      source directory.  (Somewhat related to Issue #9860.)
+    - Issue #15822: Ensure 2to3 grammar pickles are properly installed.
+    - Issue #13301: use ast.literal_eval() instead of eval()
+      in Tools/i18n/msgfmt.py.
+    - Issue #16400: Update the description of which versions of a given package
+      PyPI displays.
+    - Issue #15677: Document that zlib and gzip accept a compression level
+      of 0 to mean 'no compression'.
+    - Issue #8040: added a version switcher to the documentation.
+    - Issue #16115: Improve subprocess.Popen() documentation around args,
+      shell, and executable arguments.
+    - Issue #15979: Improve timeit documentation.
+    - Issue #16036: Improve documentation of built-in int()'s signature and
+      arguments.
+    - Issue #15935: Clarification of argparse docs, re: add_argument() type and
+      default arguments.
+    - Issue #13769: Document the effect of ensure_ascii to the return type
+      of JSON decoding functions.
+    - Issue #14880: Fix kwargs notation in csv.reader,
+      .writer & .register_dialect.
+    - Issue #14674: Add a discussion of the json module's standard compliance.
+  * Clarify location of the gdbinit file. LP: #975676.
+  * Fix traceback for missing distutils wininst .exe files. LP: #1081155.
+  * Backport python3.3 multiarch packaging changes (Riku Voipio), and fix
+    multiarch issues discovered after the backport.
+    Closes: #683755.
+  * Use a shell implementation for the python-config script.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 29 Nov 2012 20:18:20 +0100
 
 python2.7 (2.7.3-5) unstable; urgency=low
 

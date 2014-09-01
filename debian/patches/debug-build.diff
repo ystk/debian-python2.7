@@ -2,9 +2,11 @@
 # DP: built with the python-dbg interpreter with a different name into
 # DP: the same path (by appending `_d' to the extension name).
 
+Index: b/Lib/distutils/command/build.py
+===================================================================
 --- a/Lib/distutils/command/build.py
 +++ b/Lib/distutils/command/build.py
-@@ -91,7 +91,8 @@
+@@ -91,7 +91,8 @@ class build(Command):
          # 'lib.<plat>' under the base build directory.  We only use one of
          # them for a given distribution, though --
          if self.build_purelib is None:
@@ -14,9 +16,11 @@
          if self.build_platlib is None:
              self.build_platlib = os.path.join(self.build_base,
                                                'lib' + plat_specifier)
+Index: b/Lib/distutils/sysconfig.py
+===================================================================
 --- a/Lib/distutils/sysconfig.py
 +++ b/Lib/distutils/sysconfig.py
-@@ -85,7 +85,7 @@
+@@ -90,7 +90,7 @@ def get_python_inc(plat_specific=0, pref
                  # Include is located in the srcdir
                  inc_dir = os.path.join(srcdir, "Include")
              return inc_dir
@@ -25,27 +29,29 @@
      elif os.name == "nt":
          return os.path.join(prefix, "include")
      elif os.name == "os2":
-@@ -216,7 +216,7 @@
+@@ -251,7 +251,7 @@ def get_makefile_filename():
      if python_build:
-         return os.path.join(os.path.dirname(sys.executable), "Makefile")
+         return os.path.join(project_base, "Makefile")
      lib_dir = get_python_lib(plat_specific=1, standard_lib=1)
 -    return os.path.join(lib_dir, "config", "Makefile")
 +    return os.path.join(lib_dir, "config"+(sys.pydebug and "_d" or ""), "Makefile")
  
  
  def parse_config_h(fp, g=None):
+Index: b/Lib/sysconfig.py
+===================================================================
 --- a/Lib/sysconfig.py
 +++ b/Lib/sysconfig.py
-@@ -299,7 +299,7 @@
+@@ -332,7 +332,7 @@ def _parse_makefile(filename, vars=None)
  def _get_makefile_filename():
      if _PYTHON_BUILD:
          return os.path.join(_PROJECT_BASE, "Makefile")
 -    return os.path.join(get_path('platstdlib').replace("/usr/local","/usr",1), "config", "Makefile")
 +    return os.path.join(get_path('platstdlib').replace("/usr/local","/usr",1), "config" + (sys.pydebug and "_d" or ""), "Makefile")
  
- 
- def _init_posix(vars):
-@@ -384,7 +384,7 @@
+ def _generate_posix_vars():
+     """Generate the Python module containing build-time variables."""
+@@ -461,7 +461,7 @@ def get_config_h_filename():
          else:
              inc_dir = _PROJECT_BASE
      else:
@@ -54,9 +60,11 @@
      return os.path.join(inc_dir, 'pyconfig.h')
  
  def get_scheme_names():
+Index: b/Makefile.pre.in
+===================================================================
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -108,8 +108,8 @@
+@@ -117,8 +117,8 @@ SCRIPTDIR=	$(prefix)/lib
  # Detailed destination directories
  BINLIBDEST=	$(LIBDIR)/python$(VERSION)
  LIBDEST=	$(SCRIPTDIR)/python$(VERSION)
@@ -67,7 +75,7 @@
  LIBP=		$(LIBDIR)/python$(VERSION)
  
  # Symbols used for using shared libraries
-@@ -123,6 +123,8 @@
+@@ -132,6 +132,8 @@ DESTSHARED=	$(BINLIBDEST)/lib-dynload
  EXE=		@EXEEXT@
  BUILDEXE=	@BUILDEXEEXT@
  
@@ -76,8 +84,8 @@
  # Short name and location for Mac OS X Python framework
  UNIVERSALSDK=@UNIVERSALSDK@
  PYTHONFRAMEWORK=	@PYTHONFRAMEWORK@
-@@ -429,7 +431,7 @@
- 	$(AR) $(ARFLAGS) $@ $(MODOBJS)
+@@ -481,7 +483,7 @@ $(LIBRARY): $(LIBRARY_OBJS)
+ 	$(AR) $(ARFLAGS) $@ $(sort $(MODOBJS))
  	$(RANLIB) $@
  
 -libpython$(VERSION).so: $(LIBRARY_OBJS)
@@ -85,7 +93,7 @@
  	if test $(INSTSONAME) != $(LDLIBRARY); then \
  		$(BLDSHARED) $(PY_LDFLAGS) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
  		$(LN) -f $(INSTSONAME) $@; \
-@@ -990,8 +992,8 @@
+@@ -1079,8 +1081,8 @@ inclinstall:
  	$(INSTALL_DATA) pyconfig.h $(DESTDIR)$(CONFINCLUDEPY)/pyconfig.h
  
  # Install the library and miscellaneous stuff needed for extending/embedding
@@ -96,9 +104,11 @@
  
  # pkgconfig directory
  LIBPC=		$(LIBDIR)/pkgconfig
+Index: b/Misc/python-config.in
+===================================================================
 --- a/Misc/python-config.in
 +++ b/Misc/python-config.in
-@@ -45,7 +45,7 @@
+@@ -45,7 +45,7 @@ for opt in opt_flags:
  
      elif opt in ('--libs', '--ldflags'):
          libs = getvar('LIBS').split() + getvar('SYSLIBS').split()
@@ -107,9 +117,11 @@
          # add the prefix/lib/pythonX.Y/config dir, but only if there is no
          # shared library in prefix/lib/.
          if opt == '--ldflags':
+Index: b/Python/dynload_shlib.c
+===================================================================
 --- a/Python/dynload_shlib.c
 +++ b/Python/dynload_shlib.c
-@@ -46,6 +46,10 @@
+@@ -46,6 +46,10 @@ const struct filedescr _PyImport_DynLoad
      {"module.exe", "rb", C_EXTENSION},
      {"MODULE.EXE", "rb", C_EXTENSION},
  #else
@@ -120,9 +132,11 @@
      {".so", "rb", C_EXTENSION},
      {"module.so", "rb", C_EXTENSION},
  #endif
+Index: b/Python/sysmodule.c
+===================================================================
 --- a/Python/sysmodule.c
 +++ b/Python/sysmodule.c
-@@ -1504,6 +1504,12 @@
+@@ -1510,6 +1510,12 @@ _PySys_Init(void)
                          PyString_FromString("legacy"));
  #endif
  
@@ -135,9 +149,11 @@
  #undef SET_SYS_FROM_STRING
      if (PyErr_Occurred())
          return NULL;
+Index: b/configure.ac
+===================================================================
 --- a/configure.ac
 +++ b/configure.ac
-@@ -634,7 +634,7 @@
+@@ -737,7 +737,7 @@ AC_SUBST(LIBRARY)
  AC_MSG_CHECKING(LIBRARY)
  if test -z "$LIBRARY"
  then
@@ -146,7 +162,7 @@
  fi
  AC_MSG_RESULT($LIBRARY)
  
-@@ -779,8 +779,8 @@
+@@ -883,8 +883,8 @@ if test $enable_shared = "yes"; then
  	  INSTSONAME="$LDLIBRARY".$SOVERSION
            ;;
      Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*)
@@ -154,10 +170,10 @@
 -	  BLDLIBRARY='-L. -lpython$(VERSION)'
 +	  LDLIBRARY='libpython$(VERSION)$(DEBUG_EXT).so'
 +	  BLDLIBRARY='-L. -lpython$(VERSION)$(DEBUG_EXT)'
- 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
  	  case $ac_sys_system in
  	      FreeBSD*)
-@@ -904,6 +904,12 @@
+@@ -1027,6 +1027,12 @@ else AC_MSG_RESULT(no); Py_DEBUG='false'
  fi],
  [AC_MSG_RESULT(no)])
  
@@ -170,7 +186,7 @@
  # XXX Shouldn't the code above that fiddles with BASECFLAGS and OPT be
  # merged with this chunk of code?
  
-@@ -1759,7 +1765,7 @@
+@@ -1916,7 +1922,7 @@ then
  		esac
  		;;
  	CYGWIN*)   SO=.dll;;
@@ -179,9 +195,11 @@
  	esac
  else
  	# this might also be a termcap variable, see #610332
+Index: b/Lib/distutils/tests/test_build_ext.py
+===================================================================
 --- a/Lib/distutils/tests/test_build_ext.py
 +++ b/Lib/distutils/tests/test_build_ext.py
-@@ -287,8 +287,8 @@
+@@ -287,8 +287,8 @@ class BuildExtTestCase(support.TempdirMa
          finally:
              os.chdir(old_wd)
          self.assertTrue(os.path.exists(so_file))
@@ -192,7 +210,7 @@
          so_dir = os.path.dirname(so_file)
          self.assertEqual(so_dir, other_tmp_dir)
          cmd.compiler = None
-@@ -296,8 +296,7 @@
+@@ -296,8 +296,7 @@ class BuildExtTestCase(support.TempdirMa
          cmd.run()
          so_file = cmd.get_outputs()[0]
          self.assertTrue(os.path.exists(so_file))
@@ -202,9 +220,11 @@
          so_dir = os.path.dirname(so_file)
          self.assertEqual(so_dir, cmd.build_lib)
  
+Index: b/Lib/distutils/tests/test_build.py
+===================================================================
 --- a/Lib/distutils/tests/test_build.py
 +++ b/Lib/distutils/tests/test_build.py
-@@ -20,10 +20,6 @@
+@@ -20,10 +20,6 @@ class BuildTestCase(support.TempdirManag
          # if not specified, plat_name gets the current platform
          self.assertEqual(cmd.plat_name, get_platform())
  
@@ -215,7 +235,7 @@
          # build_platlib is 'build/lib.platform-x.x[-pydebug]'
          # examples:
          #   build/lib.macosx-10.3-i386-2.7
-@@ -34,6 +30,10 @@
+@@ -34,6 +30,10 @@ class BuildTestCase(support.TempdirManag
          wanted = os.path.join(cmd.build_base, 'lib' + plat_spec)
          self.assertEqual(cmd.build_platlib, wanted)
  

@@ -22,6 +22,12 @@ python\-config \- output build options for python C/C++ extensions or embedding
 .BI "\-\-ldflags"
 ]
 [
+.BI "\-\-extension\-suffix"
+]
+[
+.BI "\-\-configdir"
+]
+[
 .BI "\-\-help"
 ]
 .SH DESCRIPTION
@@ -48,6 +54,12 @@ prints the prefix (base directory) under which python can be found.
 .TP
 .BI "\-\-exec\-prefix"
 print the prefix used for executable program directories (such as bin, sbin, etc).
+.TP
+.BI "\-\-extension\-suffix"
+print suffix used for extension modules (including the _d modified for debug builds).
+.TP
+.BI "\-\-configdir"
+prints the path to the configuration directory under which the Makefile, etc. can be found).
 .TP
 .BI "\-\-help"
 print the usage message.

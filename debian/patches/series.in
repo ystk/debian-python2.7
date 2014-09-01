@@ -1,12 +1,6 @@
-hg-updates.diff
-revert-sizeof-methods.diff
-revert-issue14635.diff
-makeflags.diff
-issue9374-followup.diff
-setup-modules-heapq.diff
+// hg-updates.diff
 issue9189.diff
-issue15340.diff
-issue15847.diff
+build-libpython.diff
 deb-setup.diff
 deb-locations.diff
 site-locations.diff
@@ -19,7 +13,6 @@ tkinter-import.diff
 link-opt.diff
 debug-build.diff
 hotshot-import.diff
-webbrowser.diff
 linecache.diff
 doc-nodownload.diff
 profiled-build.diff
@@ -28,7 +21,6 @@ platform-lsbrelease.diff
 bdist-wininst-notfound.diff
 setup-modules-ssl.diff
 makesetup-bashism.diff
-hurd-broken-poll.diff
 hurd-disable-nonworking-constants.diff
 #ifdef WITH_FPECTL
 enable-fpectl.diff
@@ -38,7 +30,7 @@ statvfs-f_flag-constants.diff
 plat-linux2_alpha.diff
 #elif defined (arch_hppa)
 plat-linux2_hppa.diff
-#elif defined (arch_mips) || defined(arch_mipsel)
+#elif defined (arch_mips) || defined(arch_mipsel) || defined (arch_mips64) || defined(arch_mips64el)
 plat-linux2_mips.diff
 #elif defined (arch_sparc) || defined (arch_sparc64)
 plat-linux2_sparc.diff
@@ -59,13 +51,19 @@ plat-gnukfreebsd.diff
 link-whole-archive.diff
 bsddb-libpath.diff
 disable-sem-check.diff
-ncursesw-incdir.diff
-multiprocessing-typos.diff
 ctypes-arm.diff
-db5.1.diff
 lto-link-flags.diff
-disable-ssl-cert-tests.diff
-xdg-gvfs-open.diff
-sqlite-rpath.diff
 do-not-italicize-punctuation.patch
-sysconfigdata.diff
+multiarch.diff
+lib2to3-no-pickled-grammar.diff
+add-python-config-sh.diff
+ssl.match_hostname.diff
+ext-no-libpython-link.diff
+build-hash.diff
+libffi-shared.diff
+atomic-pyc-rename.diff
+revert-unittest-loader-symlinks19352.diff
+sphinx-no-refcounting.diff
+enable-sqlite-loadext.diff
+installed-testsuite.diff
+issue21963.diff

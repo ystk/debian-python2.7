@@ -1,8 +1,10 @@
 # DP: Enable the build of the fpectl module.
 
+Index: b/setup.py
+===================================================================
 --- a/setup.py
 +++ b/setup.py
-@@ -1276,6 +1276,9 @@
+@@ -1377,6 +1377,9 @@ class PyBuildExt(build_ext):
          else:
              missing.append('_curses_panel')
  

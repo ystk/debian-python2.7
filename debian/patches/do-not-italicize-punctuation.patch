@@ -1,7 +1,6 @@
-diff -ru python2.5-2.5.2/Misc/python.man python2.5/Misc/python.man
---- python2.5-2.5.2/Misc/python.man	2010-04-26 09:17:43.000000000 -0700
-+++ python2.5/Misc/python.man	2010-04-26 09:16:39.000000000 -0700
-@@ -243,9 +243,9 @@
+--- a/Misc/python.man
++++ b/Misc/python.man
+@@ -290,9 +290,9 @@
  from that file;
  when called with
  .B \-c
@@ -13,7 +12,7 @@ diff -ru python2.5-2.5.2/Misc/python.man python2.5/Misc/python.man
  Here
  .I command
  may contain multiple statements separated by newlines.
-@@ -255,7 +255,7 @@
+@@ -302,7 +302,7 @@
  .PP
  If available, the script name and additional arguments thereafter are
  passed to the script in the Python variable
@@ -22,7 +21,7 @@ diff -ru python2.5-2.5.2/Misc/python.man python2.5/Misc/python.man
  which is a list of strings (you must first
  .I import sys
  to be able to access it).
-@@ -269,14 +269,14 @@
+@@ -316,14 +316,14 @@
  .I '-c'.
  Note that options interpreted by the Python interpreter itself
  are not placed in
@@ -39,7 +38,7 @@ diff -ru python2.5-2.5.2/Misc/python.man python2.5/Misc/python.man
  The interpreter quits when it reads an EOF at a prompt.
  When an unhandled exception occurs, a stack trace is printed and
  control returns to the primary prompt; in non-interactive mode, the
-@@ -335,7 +335,7 @@
+@@ -382,7 +382,7 @@
  inserted in the path in front of $PYTHONPATH.
  The search path can be manipulated from within a Python program as the
  variable

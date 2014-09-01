@@ -1,5 +1,4 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper. GNU copyright 1997 by Joey Hess.
 
 unexport LANG LC_ALL LC_CTYPE LC_COLLATE LC_TIME LC_NUMERIC LC_MESSAGES
 unexport CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
@@ -12,16 +11,21 @@ export SHELL = /bin/bash
 vafilt = $(subst $(2)=,,$(filter $(2)=%,$(1)))
 
 DPKG_VARS		:= $(shell dpkg-architecture)
+DEB_BUILD_ARCH		?= $(call vafilt,$(DPKG_VARS),DEB_BUILD_ARCH)
+DEB_BUILD_GNU_TYPE	?= $(call vafilt,$(DPKG_VARS),DEB_BUILD_GNU_TYPE)
 DEB_HOST_ARCH		?= $(call vafilt,$(DPKG_VARS),DEB_HOST_ARCH)
 DEB_HOST_ARCH_BITS	?= $(call vafilt,$(DPKG_VARS),DEB_HOST_ARCH_BITS)
+DEB_HOST_ARCH_ENDIAN	?= $(call vafilt,$(DPKG_VARS),DEB_HOST_ARCH_ENDIAN)
 DEB_HOST_ARCH_OS	?= $(call vafilt,$(DPKG_VARS),DEB_HOST_ARCH_OS)
+DEB_HOST_GNU_TYPE	?= $(call vafilt,$(DPKG_VARS),DEB_HOST_GNU_TYPE)
+DEB_HOST_MULTIARCH	?= $(call vafilt,$(DPKG_VARS),DEB_HOST_MULTIARCH)
 
 changelog_values := $(shell dpkg-parsechangelog \
 			| awk '/^(Version|Source):/ {print $$2}')
 PKGSOURCE  := $(word 1, $(changelog_values))
 PKGVERSION := $(word 2, $(changelog_values))
 
-on_buildd := $(shell [ -f /CurrentlyBuilding -o "$$LOGNAME" = buildd ] && echo yes)
+on_buildd := $(shell [ -f /CurrentlyBuilding -o "$$LOGNAME" = buildd -o "$$USER" = buildd ] && echo yes)
 
 ifneq (,$(findstring nocheck, $(DEB_BUILD_OPTIONS)))
   WITHOUT_CHECK := yes
@@ -34,11 +38,15 @@ ifneq (,$(filter $(DEB_HOST_ARCH), hurd-i386))
   WITHOUT_BENCH := disabled on $(DEB_HOST_ARCH)
 endif
 ifeq ($(on_buildd),yes)
-  ifneq (,$(findstring $(DEB_HOST_ARCH), hppa mips mipsel s390))
-#    WITHOUT_CHECK := yes
+  ifneq (,$(findstring $(DEB_HOST_ARCH), hppa mips mipsel mipsn32 mipsn32el mips64 mips64el s390))
+    WITHOUT_CHECK := yes
   endif
 endif
 ifneq (,$(filter $(DEB_HOST_ARCH), hurd-i386 kfreebsd-amd64 kfreebsd-i386))
+  WITHOUT_CHECK := yes
+endif
+ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+  WITHOUT_BENCH := yes
   WITHOUT_CHECK := yes
 endif
 
@@ -48,7 +56,7 @@ ifneq (,$(filter parallel=%,$(subst $(COMMA), ,$(DEB_BUILD_OPTIONS))))
 endif
 
 distribution := $(shell lsb_release -is)
-#distribution := Ubuntu
+distrelease  := $(shell lsb_release -cs)
 
 VER=2.7
 NVER=2.8
@@ -59,7 +67,7 @@ PREVVER	:= $(shell awk '/^python/ && NR > 1 {print substr($$2,2,length($$2)-2); 
 
 # default versions are built from the python-defaults source package
 # keep the definition to adjust package priorities.
-DEFAULT_VERSION = no
+DEFAULT_VERSION = yes
 STATIC_PYTHON=yes
 
 MIN_MODS := $(shell awk '/^  / && $$2 == "module" { print $$1 }' \
@@ -88,23 +96,38 @@ PY_INTERPRETER = /usr/bin/python$(VER)
 ifeq ($(DEFAULT_VERSION),yes)
   PY_PRIO = standard
   #PYSTDDEP = , python (>= $(VER))
-  ifeq ($(distribution),Ubuntu)
-    PY_MINPRIO = required
-  else
-    PY_MINPRIO = $(PY_PRIO)
-  endif
+  PY_MINPRIO = $(PY_PRIO)
 else
   PY_PRIO = optional
   PY_MINPRIO = $(PY_PRIO)
 endif
 with_fpectl = yes
 
-CC = gcc
+ifeq (,$(filter $(distrelease),lenny etch squeeze wheezy lucid maverick natty oneiric))
+  bd_qual = :any
+endif
+ifeq (,$(filter $(distrelease),lenny etch squeeze wheezy lucid maverick natty oneiric))
+  ma_filter = cat
+else
+  ma_filter = grep -v '^Multi-Arch:'
+endif
+ifneq (,$(filter $(distrelease),sid experimental))
+  bd_gcc = gcc (>= 4:4.9.1-1~),
+endif
+ifeq (,$(filter $(distrelease),lenny etch squeeze wheezy lucid maverick natty oneiric precise quantal raring saucy trusty))
+  bd_dpkgdev = dpkg-dev (>= 1.17.11),
+endif
+
+CC = $(DEB_HOST_GNU_TYPE)-gcc
+CXX=$(DEB_HOST_GNU_TYPE)-g++
+
+AR=$(DEB_HOST_GNU_TYPE)-ar
+RANLIB=$(DEB_HOST_GNU_TYPE)-ranlib
 
 DPKG_CFLAGS  := $(shell dpkg-buildflags --get CPPFLAGS; dpkg-buildflags --get CFLAGS)
 DPKG_LDFLAGS := $(shell dpkg-buildflags --get LDFLAGS)
 OPT_CFLAGS   := $(filter-out -O%,$(DPKG_CFLAGS)) # default is -O3
-DEBUG_CFLAGS := $(patsubst -O%,-O0,$(DPKG_CFLAGS))
+DEBUG_CFLAGS := $(filter-out -D_FORTIFY_SOURCE=%,$(patsubst -O%,-O0,$(DPKG_CFLAGS)))
 
 # on alpha, use -O2 only, use -mieee
 ifeq ($(DEB_HOST_ARCH),alpha)
@@ -122,6 +145,12 @@ ifeq ($(DEB_HOST_ARCH_OS),linux)
     with_pgo := yes
   endif
 endif
+ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+  with_pgo := 
+endif
+ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+  with_pgo :=
+endif
 
 ifneq (,$(findstring $(DEB_HOST_ARCH), amd64 armel armhf i386))
   with_lto := yes
@@ -136,7 +165,14 @@ endif
 
 ifeq ($(with_lto),yes)
     LTO_CFLAGS = -g -flto -fuse-linker-plugin
+    with_fat_lto := $(shell dpkg --compare-versions $$($(CC) --version \
+			| sed -n '/^gcc/s/.* //p') ge 4.9 && echo yes)
+    ifeq ($(with_fat_lto),yes)
+      LTO_CFLAGS += -ffat-lto-objects
+    endif
     EXTRA_OPT_CFLAGS += $(LTO_CFLAGS)
+    AR=$(DEB_HOST_GNU_TYPE)-gcc-ar
+    RANLIB=$(DEB_HOST_GNU_TYPE)-gcc-ranlib
 endif
 
 make_build_target = $(if $(with_pgo),profile-opt)
@@ -163,6 +199,12 @@ p_idle	:= idle-$(PVER)
 p_doc	:= $(PVER)-doc
 p_dbg	:= $(PVER)-dbg
 
+p_lbase	:= lib$(PVER)-stdlib
+p_lmin	:= lib$(PVER)-minimal
+p_ldev	:= lib$(PVER)-dev
+p_ldbg	:= lib$(PVER)-dbg
+p_ltst	:= lib$(PVER)-testsuite
+
 d_base	:= debian/$(p_base)
 d_min	:= debian/$(p_min)
 d_lib	:= debian/$(p_lib)
@@ -173,6 +215,12 @@ d_exam	:= debian/$(p_exam)
 d_idle	:= debian/$(p_idle)
 d_doc	:= debian/$(p_doc)
 d_dbg	:= debian/$(p_dbg)
+
+d_lbase	:= debian/$(p_lbase)
+d_lmin	:= debian/$(p_lmin)
+d_ldev	:= debian/$(p_ldev)
+d_ldbg	:= debian/$(p_ldbg)
+d_ltst	:= debian/$(p_ltst)
 
 build-arch: stamps/stamp-build
 build-indep: stamps/stamp-build-doc
@@ -208,6 +256,14 @@ stamps/stamp-build-static: stamps/stamp-configure-static
 	$(MAKE) $(NJOBS) -C $(buildd_static) \
 		EXTRA_CFLAGS="$(EXTRA_OPT_CFLAGS)" \
 		PROFILE_TASK='$(PROFILE_TASK)' $(make_build_target)
+
+	: # check that things are correctly built
+ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+  ifneq (,$(filter $(DEB_HOST_ARCH_OS), linux))
+	cd $(buildd_static) && ./python -c 'from _multiprocessing import SemLock'
+  endif
+endif
+
 	touch stamps/stamp-build-static
 
 stamps/stamp-build-shared: stamps/stamp-configure-shared
@@ -233,8 +289,7 @@ stamps/stamp-build-shared-debug: stamps/stamp-configure-shared-debug
 	dh_testdir
 	: # build the shared debug library
 	$(MAKE) $(NJOBS) -C $(buildd_shdebug) \
-		EXTRA_CFLAGS="$(DEBUG_CFLAGS)" \
-		libpython$(VER)_d.so
+		EXTRA_CFLAGS="$(DEBUG_CFLAGS)"
 	touch stamps/stamp-build-shared-debug
 
 common_configure_args = \
@@ -244,7 +299,7 @@ common_configure_args = \
 		--with-dbmliborder=bdb:gdbm \
 		--with-system-expat
 
-ifeq ($(DEB_HOST_ARCH), avr32)
+ifneq (,$(filter $(DEB_HOST_ARCH), avr32 or1k))
   common_configure_args += --without-ffi
 else
   common_configure_args += --with-system-ffi
@@ -255,11 +310,25 @@ ifeq ($(with_fpectl),yes)
 		--with-fpectl
 endif
 
+ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+  common_configure_args += --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE)
+  config_site = ac_cv_file__dev_ptmx=yes ac_cv_file__dev_ptc=yes
+  ifeq (,$(filter $(DEB_HOST_ARCH),arm m68k))
+    ifeq ($(DEB_HOST_ARCH_ENDIAN),little)
+      config_site += ac_cv_little_endian_double=yes
+    else
+      config_site += ac_cv_big_endian_double=yes
+    endif
+  endif
+endif
+
 stamps/stamp-configure-shared: stamps/stamp-patch
 	rm -rf $(buildd_shared)
 	mkdir -p $(buildd_shared)
 	cd $(buildd_shared) && \
-	  CC="$(CC)" CFLAGS="$(OPT_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	  CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" \
+	  CFLAGS="$(OPT_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	    $(config_site) \
 	    ../configure \
 		--enable-shared \
 		$(common_configure_args)
@@ -272,7 +341,9 @@ stamps/stamp-configure-static: stamps/stamp-patch
 	rm -rf $(buildd_static)
 	mkdir -p $(buildd_static)
 	cd $(buildd_static) && \
-	  CC="$(CC)" CFLAGS="$(OPT_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	  CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" \
+	  CFLAGS="$(OPT_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	    $(config_site) \
 	    ../configure \
 		$(common_configure_args)
 
@@ -284,7 +355,9 @@ stamps/stamp-configure-debug: stamps/stamp-patch
 	rm -rf $(buildd_debug)
 	mkdir -p $(buildd_debug)
 	cd $(buildd_debug) && \
-	  CC="$(CC)" CFLAGS="$(DEBUG_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	  CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" \
+	  CFLAGS="$(DEBUG_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	    $(config_site) \
 	    ../configure \
 		$(common_configure_args) \
 		--with-pydebug
@@ -297,7 +370,9 @@ stamps/stamp-configure-shared-debug: stamps/stamp-patch
 	rm -rf $(buildd_shdebug)
 	mkdir -p $(buildd_shdebug)
 	cd $(buildd_shdebug) && \
-	  CC="$(CC)" CFLAGS="$(DEBUG_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	  CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" \
+	  CFLAGS="$(DEBUG_CFLAGS)" LDFLAGS="$(DPKG_LDFLAGS)" \
+	    $(config_site) \
 	    ../configure \
 		$(common_configure_args) \
 		--enable-shared \
@@ -331,24 +406,26 @@ define __post_configure
 endef
 
 stamps/stamp-mincheck: stamps/stamp-build-static debian/PVER-minimal.README.Debian.in
+ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
 	for m in $(MIN_MODS) $(MIN_PACKAGES) $(MIN_EXTS) $(MIN_BUILTINS); do \
 	  echo "import $$m"; \
 	done > $(buildd_static)/minmods.py
 	cd $(buildd_static) && ./python ../debian/pymindeps.py minmods.py \
 	  > $(buildd_static)/mindeps.txt
 	if [ -x /usr/bin/dot ]; then \
-	  python debian/depgraph.py < $(buildd_static)/mindeps.txt \
-	    > $(buildd_static)/mindeps.dot; \
+	  cd $(buildd_static); \
+	  ./python ../debian/depgraph.py < mindeps.txt > mindeps.dot; \
 	  dot -Tpng -o $(buildd_static)/mindeps.png \
 	    $(buildd_static)/mindeps.dot; \
 	else true; fi
 	cd $(buildd_static) && ./python ../debian/mincheck.py \
 		minmods.py mindeps.txt
+endif
 	touch stamps/stamp-mincheck
 
 TEST_RESOURCES = all
 ifeq ($(on_buildd),yes)
-  TEST_RESOURCES := $(TEST_RESOURCES),-network,-urlfetch
+  TEST_RESOURCES := $(TEST_RESOURCES),-network,-urlfetch,-bsddb
 endif
 TESTOPTS = -w -l -u$(TEST_RESOURCES)
 TEST_EXCLUDES =
@@ -375,9 +452,7 @@ endif
 ifneq (,$(filter $(DEB_HOST_ARCH), arm avr32))
   TEST_EXCLUDES += test_ctypes
 endif
-ifneq (,$(filter $(DEB_HOST_ARCH), m68k avr32 kfreebsd-amd64 kfreebsd-i386))
-  TEST_EXCLUDES += test_bsddb3
-endif
+TEST_EXCLUDES += test_bsddb3
 ifneq (,$(filter $(DEB_HOST_ARCH), arm armel avr32 m68k))
   ifeq ($(on_buildd),yes)
     TEST_EXCLUDES += test_compiler
@@ -385,7 +460,7 @@ ifneq (,$(filter $(DEB_HOST_ARCH), arm armel avr32 m68k))
 endif
 TEST_EXCLUDES += test_gdb
 # fails on some buildds
-ifneq (,$(filter $(DEB_HOST_ARCH), amd64))
+ifneq (,$(filter $(DEB_HOST_ARCH), amd64 armel armhf mips mipsel))
   TEST_EXCLUDES += test_io
 endif
 ifneq (,$(filter $(DEB_HOST_ARCH), kfreebsd-amd64 kfreebsd-i386))
@@ -435,7 +510,9 @@ else
 	) > $(buildd_debug)/run_tests
 	chmod 755 $(buildd_debug)/run_tests
 	@echo "BEGIN test debug"
-	-cd $(buildd_debug) && time xvfb-run -a -e xvfb-run.log ./run_tests
+	-tmphome=$$(mktemp -d); export HOME=$$tmphome; \
+	  cd $(buildd_debug) && time xvfb-run -a -e xvfb-run.log ./run_tests; \
+	  rm -rf $$tmphome
 	@echo "END test debug"
   endif
 
@@ -449,7 +526,9 @@ else
 	) > $(buildd_static)/run_tests
 	chmod 755 $(buildd_static)/run_tests
 	@echo "BEGIN test static"
-	-cd $(buildd_static) && time xvfb-run -a -e xvfb-run.log ./run_tests
+	-tmphome=$$(mktemp -d); export HOME=$$tmphome; \
+	  cd $(buildd_static) && time xvfb-run -a -e xvfb-run.log ./run_tests; \
+	  rm -rf $$tmphome
 	@echo "END test static"
 
 	( \
@@ -462,13 +541,16 @@ else
 	) > $(buildd_shared)/run_tests
 	chmod 755 $(buildd_shared)/run_tests
 	@echo "BEGIN test shared"
-	-cd $(buildd_shared) && time xvfb-run -a -e xvfb-run.log ./run_tests
+	-tmphome=$$(mktemp -d); export HOME=$$tmphome; \
+	  cd $(buildd_shared) && time xvfb-run -a -e xvfb-run.log ./run_tests; \
+	  rm -rf $$tmphome
 	@echo "END test shared"
 endif
 	cp -p $(buildd_static)/test_results debian/
 	touch stamps/stamp-check
 
 stamps/stamp-pystone:
+ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
 	@echo "BEGIN pystone static"
 	cd $(buildd_static) && ./python ../Lib/test/pystone.py
 	cd $(buildd_static) && ./python ../Lib/test/pystone.py
@@ -483,6 +565,7 @@ stamps/stamp-pystone:
 	cd $(buildd_debug) && ./python ../Lib/test/pystone.py
 	cd $(buildd_debug) && ./python ../Lib/test/pystone.py
 	@echo "END pystone debug"
+endif
 	touch stamps/stamp-pystone
 
 #ifeq (,$(filter $(DEB_HOST_ARCH), arm armel avr32 hppa mips mipsel m68k))
@@ -557,7 +640,12 @@ control-file:
 	    -e "s/@PYSTDDEP@/$(PYSTDDEP)/g" \
 	    -e "s/@PRIO@/$(PY_PRIO)/g" \
 	    -e "s/@MINPRIO@/$(PY_MINPRIO)/g" \
-		debian/control.in > debian/control.tmp
+	    -e "s/@bd_qual@/$(bd_qual)/g" \
+	    -e "s/@bd_gcc@/$(bd_gcc)/g" \
+	    -e "s/@bd_dpkgdev@/$(bd_dpkgdev)/g" \
+		debian/control.in \
+	  | $(ma_filter) \
+	  > debian/control.tmp
 ifeq ($(distribution),Ubuntu)
   ifneq (,$(findstring ubuntu, $(PKGVERSION)))
 	m='Ubuntu Core Developers <ubuntu-devel-discuss@lists.ubuntu.com>'; \
@@ -585,8 +673,9 @@ clean: control-file
 	rm -rf $(buildd_static) $(buildd_shared) $(buildd_debug) $(buildd_shdebug)
 	find -name '*.py[co]' | xargs -r rm -f
 	rm -f Lib/lib2to3/*.pickle
+	rm -rf Lib/plat-$(DEB_HOST_MULTIARCH)
 	rm -rf locales
-	rm -rf $(d)-dbg
+	rm -rf $(d)-dbg $(d)-shdbg
 
 	for f in debian/*.in; do \
 	  f2=`echo $$f | sed "s,PVER,$(PVER),g;s/@VER@/$(VER)/g;s,\.in$$,,"`; \
@@ -594,6 +683,7 @@ clean: control-file
 	    rm -f $$f2; \
 	  fi; \
 	done
+	dh_autotools-dev_restoreconfig
 	dh_clean
 
 stamps/stamp-control:
@@ -606,12 +696,13 @@ stamps/stamp-control:
 		    -e "s/@PRIORITY@/$(PRIORITY)/g" \
 		    -e "s,@SCRIPTDIR@,/$(scriptdir),g" \
 		    -e "s,@INFO@,$(info_docs),g" \
+		    -e "s,@HOST_QUAL@,:$(DEB_HOST_ARCH),g" \
 		  <$$f >$$f2; \
 	  fi; \
 	done
 ifeq ($(DEB_HOST_ARCH_BITS),64)
 	sed -i 's/\(Py_InitModule4[^@]*\)@/\1_64@/' \
-		debian/lib$(PVER).symbols debian/$(PVER)-dbg.symbols
+		debian/lib$(PVER).symbols debian/lib$(PVER)-dbg.symbols
 endif
 
 2to3-man:
@@ -634,16 +725,43 @@ ifeq ($(with_interp),static)
 else
 	$(MAKE) -C $(buildd_shared) install prefix=$(CURDIR)/$(d)/usr
 endif
+	mkdir -p $(d)/usr/include/$(DEB_HOST_MULTIARCH)/$(PVER)
+	mv $(d)/usr/include/$(PVER)/pyconfig.h \
+		$(d)/usr/include/$(DEB_HOST_MULTIARCH)/$(PVER)/.
+	mv $(d)/usr/bin/python-config.sh $(d)/usr/bin/python$(VER)-config
+	sed -i 's/-O3/-O2/g;s/$(LTO_CFLAGS)//g;s/-fprofile-use *-fprofile-correction//g' \
+		$(d)/usr/bin/python$(VER)-config
+
+	: # fiddle around with the platform directory
+	mkdir -p $(d)/$(scriptdir)/plat-$(DEB_HOST_MULTIARCH)/
+	set -x; echo XXXXXX; \
+	for i in Lib/plat-linux2/*; do \
+	  n=$$(basename $$i); \
+	  if [ ! -f $(d)/$(scriptdir)/plat-$(DEB_HOST_MULTIARCH)/$$n ]; then \
+	    cp -p $$i $(d)/$(scriptdir)/plat-$(DEB_HOST_MULTIARCH)/; \
+	  fi; \
+	done
+	rm -f $(d)/$(scriptdir)/lib-dynload/*.py
+	cp -p $(buildd_shared)/$(shell cat $(buildd_shared)/pybuilddir.txt)/_sysconfigdata.py \
+		$(d)/$(scriptdir)/.
 	mv $(d)/$(scriptdir)/_sysconfigdata.py \
-		$(d)/$(scriptdir)/_sysconfigdata_nd.py
-	sed -i 's/ -O3 / -O2 /g;s/$(LTO_CFLAGS)//g' \
-		$(d)/$(scriptdir)/_sysconfigdata_nd.py
-	cp -p debian/_sysconfigdata.py $(d)/$(scriptdir)/
+		$(d)/$(scriptdir)/plat-$(DEB_HOST_MULTIARCH)/_sysconfigdata_nd.py
+	sed -i 's/ -O3 / -O2 /g;s/$(LTO_CFLAGS)//g;s/-fprofile-use *-fprofile-correction//g' \
+		$(d)/$(scriptdir)/plat-$(DEB_HOST_MULTIARCH)/_sysconfigdata_nd.py
+	cp -p debian/_sysconfigdata.py $(d)/$(scriptdir)
 
 	-find $(d)/usr/lib/python$(VER) -name '*_failed*.so'
 	find $(d)/usr/lib/python$(VER) -name '*_failed*.so' | xargs -r rm -f
 
 	test -f $(d)/usr/lib/python$(VER)/lib-dynload/_bsddb.so
+
+	for i in $(d)/$(scriptdir)/lib-dynload/*.so; do \
+	  b=$$(basename $$i .so); \
+	  d=$${b}.$(DEB_HOST_MULTIARCH).so; \
+	  mv $$i $(d)/$(scriptdir)/lib-dynload/$$d; \
+	done
+
+	mv $(d)/usr/lib/libpython*.a $(d)/usr/lib/$(DEB_HOST_MULTIARCH)/
 
 	mv $(d)/usr/lib/python$(VER)/site-packages \
 		$(d)/usr/lib/python$(VER)/dist-packages
@@ -651,10 +769,13 @@ endif
 	: # remove files, which are not packaged
 	rm -f $(d)/usr/bin/smtpd.py
 	rm -rf $(d)/usr/lib/python$(VER)/ctypes/macholib
-	rm -f $(d)/usr/lib/pkgconfig/python.pc
-	rm -f $(d)/usr/lib/pkgconfig/python2.pc
+	rm -f $(d)/$(scriptdir)/plat-*/regen
+	rm -f $(d)/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/python.pc
+	rm -f $(d)/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/python2.pc
 	rm -f $(d)/usr/bin/python2{,-config}
+	rm -f $(d)/usr/share/man/man1/python.1
 	rm -f $(d)/usr/share/man/man1/python2{,-config}.1
+	rm -f $(d)/$(scriptdir)/lib2to3/*.pickle
 
 	: # cannot build it, zlib maintainer won't provide a mingw build
 	find $(d) -name 'wininst*.exe' | xargs -r rm -f
@@ -689,16 +810,21 @@ endif
 		$(d)/$(scriptdir)/lib-dynload/Python-$(VER).egg-info
 
 	dh_installdirs -p$(p_lib) \
-		$(scriptdir)/config \
+		usr/lib/$(DEB_HOST_MULTIARCH) \
+		$(scriptdir)/config-$(DEB_HOST_MULTIARCH) \
 		usr/share/doc
 	: # install the shared library
-	cp -p $(buildd_shared)/libpython$(VER).so.1.0 $(d_lib)/usr/lib/
-	ln -sf libpython$(VER).so.1.0 $(d_lib)/usr/lib/libpython$(VER).so.1
-	ln -sf ../../libpython$(VER).so.1 \
-		$(d_lib)/$(scriptdir)/config/libpython$(VER).so
+	cp -p $(buildd_shared)/libpython$(VER).so.1.0 \
+		$(d_lib)/usr/lib/$(DEB_HOST_MULTIARCH)/
+	dh_link -p$(p_lib) \
+	    /usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER).so.1.0 \
+		/usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER).so.1 \
+	    /usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER).so.1 \
+		/$(scriptdir)/config-$(DEB_HOST_MULTIARCH)/libpython$(VER).so
+
 	ln -sf $(p_base) $(d_lib)/usr/share/doc/$(p_lib)
 
-	ln -sf libpython$(VER).so.1 $(d)/usr/lib/libpython$(VER).so
+	ln -sf libpython$(VER).so.1 $(d)/usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER).so
 
 ifeq ($(with_interp),shared)
 	: # install the statically linked runtime
@@ -713,67 +839,100 @@ endif
 	sed -e '/^OPT/s,-O3,-O2,' \
 	    -e 's/$(LTO_CFLAGS)//g' \
 	    -e 's,^RUNSHARED *=.*,RUNSHARED=,' \
-		build-shared/Makefile > $(d)/$(scriptdir)/config/Makefile
+	    -e '/BLDLIBRARY/s/-L\. //' \
+		build-shared/Makefile > $(d)/$(scriptdir)/config-$(DEB_HOST_MULTIARCH)/Makefile
 
-	: # Move the binary and the minimal libraries into $(p_min).
-	dh_installdirs -p$(p_min) \
+	: # Move the binary and the minimal libraries into $(p_lmin).
+	dh_installdirs -p$(p_lmin) \
 		etc/$(PVER) \
 		usr/bin \
 		usr/include/$(PVER) \
 		usr/share/man/man1 \
-		$(scriptdir)/lib-dynload \
-		$(scriptdir)/config
-	DH_COMPAT=2 dh_movefiles -p$(p_min) --sourcedir=$(d) \
-		usr/bin/python$(VER) \
-		usr/share/man/man1/python$(VER).1 \
+		$(scriptdir)/lib-dynload
+	DH_COMPAT=2 dh_movefiles -p$(p_lmin) --sourcedir=$(d) \
 		$(foreach i,$(MIN_MODS),$(scriptdir)/$(i).py) \
 		$(foreach i,$(MIN_PACKAGES),$(scriptdir)/$(i)) \
 		$(foreach i,$(MIN_ENCODINGS),$(scriptdir)/$(i)) \
-		$(scriptdir)/config/Makefile \
-		usr/include/$(PVER)/pyconfig.h \
+		/$(scriptdir)/plat-$(DEB_HOST_MULTIARCH)/_sysconfigdata_nd.py \
 		$(scriptdir)/site.py \
 		$(shell cd $(d); for i in $(MIN_EXTS); do \
 			test -e $(scriptdir)/lib-dynload/$$i.so \
 			  && echo $(scriptdir)/lib-dynload/$$i.so; \
 		  done; true)
 
+	: # Move the binary and the minimal libraries into $(p_min).
+	dh_installdirs -p$(p_min) \
+		usr/bin \
+		usr/share/man/man1
+	DH_COMPAT=2 dh_movefiles -p$(p_min) --sourcedir=$(d) \
+		usr/bin/python$(VER) \
+		usr/share/man/man1/python$(VER).1
+
 	: # Install sitecustomize.py.
-	cp -p debian/sitecustomize.py $(d_min)/etc/$(PVER)/
-	patch --no-backup -d $(d_min)/$(scriptdir) < debian/patches/site-builddir.diff
-	dh_link -p$(p_min) /etc/$(PVER)/sitecustomize.py \
+	cp -p debian/sitecustomize.py $(d_lmin)/etc/$(PVER)/
+	dh_link -p$(p_lmin) /etc/$(PVER)/sitecustomize.py \
 		/$(scriptdir)/sitecustomize.py
 
-	: # Move the static library and the header files into $(p_dev).
+	: # Move the static library and the header files into $(p_ldev).
 #	mv $(d)/usr/share/include/python$(VER)/* $(d)/usr/include/python$(VER)/.
 #	rm -rf $(d)/usr/share/include
-	dh_installdirs -p$(p_dev) \
-		usr/share/doc/python$(VER) \
+
+	cp $(d)/usr/bin/python$(VER)-config $(d)/usr/bin/$(DEB_HOST_MULTIARCH)-python$(VER)-config
+	dh_installdirs -p$(p_ldev) \
+		usr/bin \
 		$(scriptdir) \
-		$(scriptdir)/doc/html \
 		usr/include \
+		usr/share/man/man1
+
+	DH_COMPAT=2 dh_movefiles -p$(p_ldev) --sourcedir=$(d) \
+		usr/bin/$(DEB_HOST_MULTIARCH)-python$(VER)-config \
+		usr/lib/python$(VER)/config-$(DEB_HOST_MULTIARCH) \
+		usr/include \
+		usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER).{a,so} \
+		usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/python-$(VER)*.pc
+
+	sed 's/@subdir@/$(PVER)/;s/@header@/pyconfig.h/' \
+		debian/multiarch.h.in > $(d_ldev)/usr/include/$(PVER)/pyconfig.h
+
+	cp -p debian/python-config.1 \
+		$(d_ldev)/usr/share/man/man1/$(DEB_HOST_MULTIARCH)-python$(VER)-config.1
+
+ifneq ($(DEB_HOST_MULTIARCH),$(DEB_HOST_GNU_TYPE))
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-config \
+		$(d_ldev)/usr/bin/$(DEB_HOST_GNU_TYPE)-$(PVER)-config
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-config.1.gz \
+		$(d_ldev)/usr/share/man/man1/$(DEB_HOST_GNU_TYPE)-$(PVER)-config.1.gz
+endif
+
+	sed -i '/^Cflags:/s,$$, -I$${includedir}/$(DEB_HOST_MULTIARCH)/python$(VER),' \
+		$(d_ldev)/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/python-$(VER).pc
+
+	dh_link -p$(p_ldev) \
+		/usr/lib/$(PVER)/config-$(DEB_HOST_MULTIARCH)/libpython$(VER).a \
+		/usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER).a
+
+	cp -p $(buildd_shared)/libpython$(VER)-pic.a \
+		$(d_ldev)/usr/lib/python$(VER)/config-$(DEB_HOST_MULTIARCH)/
+
+	: # Move the static library and the header files into $(p_dev).
+	dh_installdirs -p$(p_dev) \
+		usr/share/doc/python$(VER)/$(DEB_HOST_MULTIARCH) \
 		usr/share/man/man1 \
-		usr/lib
+		$(scriptdir) \
+		$(scriptdir)/doc/html
+
 	cp -p Misc/HISTORY Misc/README.valgrind Misc/gdbinit \
 		debian/README.maintainers \
-		debian/test_results $(buildd_static)/pybench.log \
-	    $(d_dev)/usr/share/doc/python$(VER)/
+		$(d_dev)/usr/share/doc/python$(VER)/
+	cp -p	debian/test_results $(buildd_static)/pybench.log \
+		$(d_dev)/usr/share/doc/python$(VER)/$(DEB_HOST_MULTIARCH)/
 
 	DH_COMPAT=2 dh_movefiles -p$(p_dev) --sourcedir=$(d) \
-		usr/lib/python$(VER)/config \
-		usr/include/python$(VER) \
-		usr/lib/libpython$(VER).so \
-		usr/lib/libpython$(VER).a \
-		usr/lib/pkgconfig/python-$(VER).pc \
 		usr/bin/python$(VER)-config \
 		usr/lib/python$(VER)/distutils/command/wininst-*.exe
 
-	ln -sf $(PVER)/config/libpython$(VER).a \
-		$(d_dev)/usr/lib/libpython$(VER).a
-
-	cp -p debian/python-config.1 \
-		$(d_dev)/usr/share/man/man1/python$(VER)-config.1
-	cp -p $(buildd_shared)/libpython$(VER)-pic.a \
-		$(d_dev)/usr/lib/python$(VER)/config/
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-config $(d_dev)/usr/bin/$(PVER)-config
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-config.1.gz $(d_dev)/usr/share/man/man1/$(PVER)-config.1.gz
 
 ifeq ($(with_tk),yes)
 	: # Move the Tkinter files into $(p_tk).
@@ -792,19 +951,27 @@ ifeq ($(with_gdbm),yes)
 		usr/lib/python$(VER)/lib-dynload/gdbm.so
 endif
 
-#	: # The test framework into $(p_base), regression tests dropped
-	DH_COMPAT=2 dh_movefiles -p$(p_base) --sourcedir=$(d) \
+	: # The test framework into $(p_lbase)
+	DH_COMPAT=2 dh_movefiles -p$(p_lbase) --sourcedir=$(d) \
 		$(scriptdir)/test/{regrtest.py,test_support.py,__init__.py,pystone.py}
-	rm -rf $(d)/$(scriptdir)/test
-	rm -rf $(d)/$(scriptdir)/ctypes/test
-	rm -rf $(d)/$(scriptdir)/bsddb/test
-	rm -rf $(d)/$(scriptdir)/email/test
-	rm -rf $(d)/$(scriptdir)/json/tests
-	rm -rf $(d)/$(scriptdir)/sqlite3/test
-	rm -rf $(d)/$(scriptdir)/distutils/tests
-	rm -rf $(d)/$(scriptdir)/lib2to3/tests
-	rm -rf $(d)/$(scriptdir)/unittest/test
-	rm -rf $(d)/$(scriptdir)/lib-tk/test
+
+	: # The complete testsuite into $(p_lbase)
+	DH_COMPAT=2 dh_movefiles -p$(p_ltst) --sourcedir=$(d) \
+		$(scriptdir)/test \
+		$(scriptdir)/ctypes/test \
+		$(scriptdir)/bsddb/test \
+		$(scriptdir)/email/test \
+		$(scriptdir)/json/tests \
+		$(scriptdir)/sqlite3/test \
+		$(scriptdir)/distutils/tests \
+		$(scriptdir)/lib2to3/tests \
+		$(scriptdir)/unittest/test \
+		$(scriptdir)/lib-tk/test
+
+	: # test_ctypes fails with test_macholib.py installed
+	rm -f $(d_ltst)/$(scriptdir)/ctypes/test/test_macholib.py
+	: # test_bdist_wininst fails, '*.exe' files are not installed
+	rm -f $(d_ltst)/$(scriptdir)/distutils/tests/test_bdist_wininst.py
 
 	: # IDLE
 	mv $(d)/usr/bin/idle $(d)/usr/bin/idle-python$(VER)
@@ -882,6 +1049,12 @@ ifeq ($(with_tk),yes)
 	cp -p debian/README.Tk $(d_tk)/usr/share/doc/$(p_tk)/
 endif
 
+	: # library files into $(p_lbase)
+	dh_installdirs -p$(p_lbase) \
+		usr/lib
+	dh_movefiles -p$(p_lbase) \
+		usr/lib/python$(VER)
+
 	: # The rest goes into $(p_base)
 	mkdir -p $(d)/usr/lib/python$(VER)/dist-packages
 	(cd $(d) && tar cf - .) | (cd $(d_base) && tar xpf -)
@@ -889,7 +1062,7 @@ endif
 	rm -f $(d_base)/usr/bin/python
 
 	: # install egg-info for arparse
-	install -m 644 debian/argparse.egg-info $(d_base)/$(scriptdir)/
+	install -m 644 debian/argparse.egg-info $(d_lbase)/$(scriptdir)/
 
 	: # Install menu icon
 	dh_installdirs -p$(p_base) usr/share/pixmaps
@@ -897,8 +1070,12 @@ endif
 
 	: # generate binfmt file
 	mkdir -p $(d_min)/usr/share/binfmts
+ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
 	$(buildd_static)/python debian/mkbinfmt.py $(PVER) \
 		> $(d_min)/usr/share/binfmts/$(PVER)
+else
+	$(PVER) debian/mkbinfmt.py $(PVER) > $(d_min)/usr/share/binfmts/$(PVER)
+endif
 
 	: # desktop entry
 	mkdir -p $(d_base)/usr/share/applications
@@ -913,61 +1090,107 @@ endif
 	-find debian ! -name lib-dynload -type d -empty -delete
 
 	: # install debug package
-	rm -rf $(d)-dbg
+	rm -rf $(d)-dbg $(d)-shdbg
+	: # need some files from the shared build
+	$(MAKE) -C $(buildd_shdebug) install DESTDIR=$(CURDIR)/$(d)-shdbg
 	$(MAKE) -C $(buildd_debug) install DESTDIR=$(CURDIR)/$(d)-dbg
-	mv $(d)-dbg/$(scriptdir)/_sysconfigdata.py \
-		$(d)-dbg/$(scriptdir)/_sysconfigdata_d.py
-	dh_installdirs -p$(p_dbg) \
+	mv $(d)-dbg/usr/lib/libpython*.a $(d)-dbg/usr/lib/$(DEB_HOST_MULTIARCH)/
+	mv $(d)-shdbg/$(scriptdir)/_sysconfigdata.py \
+		$(d)-shdbg/$(scriptdir)/_sysconfigdata_d.py
+
+	for i in $(d)-dbg/$(scriptdir)/lib-dynload/*_d.so; do \
+	  b=$$(basename $$i _d.so); \
+	  d=$${b}.$(DEB_HOST_MULTIARCH)_d.so; \
+	  mv $$i $(d)-dbg/$(scriptdir)/lib-dynload/$$d; \
+	done
+	for i in $(d)-shdbg/$(scriptdir)/lib-dynload/*_d.so; do \
+	  b=$$(basename $$i _d.so); \
+	  d=$${b}.$(DEB_HOST_MULTIARCH)_d.so; \
+	  mv $$i $(d)-shdbg/$(scriptdir)/lib-dynload/$$d; \
+	done
+
+	dh_installdirs -p$(p_ldbg) \
 		usr/bin \
 		usr/share/man/man1 \
 		$(scriptdir)/lib-dynload \
+		$(scriptdir)/plat-$(DEB_HOST_MULTIARCH) \
 		usr/include/$(PVER)_d \
-		usr/lib/pkgconfig \
+		usr/include/$(DEB_HOST_MULTIARCH)/$(PVER)_d \
+		usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig \
+
+	cp -p $(d)-shdbg/$(scriptdir)/lib-dynload/*.so \
+		$(d_ldbg)/$(scriptdir)/lib-dynload/
+	cp -p $(buildd_shdebug)/libpython$(VER)_d.so.1.0 \
+		$(d_ldbg)/usr/lib/$(DEB_HOST_MULTIARCH)/
+	dh_link -p$(p_ldbg) \
+		/usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER)_d.so.1.0 \
+		/usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER)_d.so.1 \
+		/usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER)_d.so.1 \
+		/usr/lib/$(DEB_HOST_MULTIARCH)/libpython$(VER)_d.so
+	sed -e '/^Libs:/s,-lpython$(VER),-lpython$(VER)_d,' \
+		-e '/^Cflags:/s,python$(VER),python$(VER)_d,' \
+		-e '/^Cflags:/s,$$, -I$${includedir}/$(DEB_HOST_MULTIARCH)/python$(VER)_d,' \
+		$(d)-dbg/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/python-$(VER).pc \
+		> $(d_ldbg)/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/python-$(VER)-dbg.pc
+
+	: # in $(p_ldbg), prefix python-config with triplets
+	cp $(d)-shdbg/usr/bin/python-config.sh \
+		$(d_ldbg)/usr/bin/$(DEB_HOST_MULTIARCH)-$(PVER)-dbg-config
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-config.1.gz \
+		$(d_ldbg)/usr/share/man/man1/$(DEB_HOST_MULTIARCH)-$(PVER)-dbg-config.1.gz
+ifneq ($(DEB_HOST_MULTIARCH),$(DEB_HOST_GNU_TYPE))
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-dbg-config \
+		$(d_ldbg)/usr/bin/$(DEB_HOST_GNU_TYPE)-$(PVER)-dbg-config
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-config.1.gz \
+		$(d_ldbg)/usr/share/man/man1/$(DEB_HOST_GNU_TYPE)-$(PVER)-dbg-config.1.gz
+endif
+
+	dh_installdirs -p$(p_dbg) \
+		usr/bin \
+		$(scriptdir)/lib-dynload \
+		usr/share/man/man1 \
 		usr/share/doc/$(p_base)
+
 	cp -p Misc/SpecialBuilds.txt $(d_dbg)/usr/share/doc/$(p_base)/
 	cp -p debian/$(PVER)-dbg.README.Debian \
 		$(d_dbg)/usr/share/doc/$(p_base)/README.debug
 	cp -p $(buildd_debug)/python $(d_dbg)/usr/bin/$(PVER)-dbg
-	sed '1s,#!.*python[^ ]*\(.*\),#! $(PY_INTERPRETER)-dbg\1,' \
-		$(d)-dbg/usr/bin/$(PVER)-config \
-		> $(d_dbg)/usr/bin/$(PVER)-dbg-config
-	chmod 755 $(d_dbg)/usr/bin/$(PVER)-dbg-config
-	cp -p $(buildd_debug)/build/lib*/*_d.so \
+	cp -p $(d)-shdbg/usr/bin/python-config.sh \
+		$(d_dbg)/usr/bin/$(PVER)-dbg-config
+#	cp -p $(buildd_debug)/build/lib*/*_d.so \
 		$(d_dbg)/$(scriptdir)/lib-dynload/
-	cp -p $(d)-dbg/$(scriptdir)/_sysconfigdata_d.py \
-		$(d_dbg)/$(scriptdir)/
-	cp -p $(buildd_shdebug)/libpython$(VER)_d.so.1.0 $(d_dbg)/usr/lib/
-	ln -sf libpython$(VER)_d.so.1.0 $(d_dbg)/usr/lib/libpython$(VER)_d.so.1
-	ln -sf libpython$(VER)_d.so.1 $(d_dbg)/usr/lib/libpython$(VER)_d.so
-	sed -e '/^Libs:/s,-lpython$(VER),-lpython$(VER)_d,' \
-	  -e '/^Cflags:/s,python$(VER),python$(VER)_d,' \
-	  $(d)-dbg/usr/lib/pkgconfig/python-$(VER).pc \
-	  > $(d_dbg)/usr/lib/pkgconfig/python-$(VER)-dbg.pc
+	cp -p $(d)-shdbg/$(scriptdir)/_sysconfigdata_d.py \
+		$(d_ldbg)/$(scriptdir)/plat-$(DEB_HOST_MULTIARCH)/
 ifneq ($(with_gdbm),yes)
-	rm -f $(d_dbg)/$(scriptdir)/lib-dynload/gdbm_d.so
-	rm -f $(d_dbg)/usr/lib/debug/$(scriptdir)/lib-dynload/gdbm.so
+	rm -f $(d_ldbg)/$(scriptdir)/lib-dynload/gdbm.$(DEB_HOST_MULTIARCH)_d.so
+	rm -f $(d_dbg)/usr/lib/debug/$(scriptdir)/lib-dynload/gdbm.$(DEB_HOST_MULTIARCH).so
 endif
 ifneq ($(with_tk),yes)
-	rm -f $(d_dbg)/$(scriptdir)/lib-dynload/_tkinter_d.so
-	rm -f $(d_dbg)/usr/lib/debug/$(scriptdir)/lib-dynload/_tkinter.so
+	rm -f $(d_ldbg)/$(scriptdir)/lib-dynload/_tkinter.$(DEB_HOST_MULTIARCH)_d.so
+	rm -f $(d_dbg)/usr/lib/debug/$(scriptdir)/lib-dynload/_tkinter.$(DEB_HOST_MULTIARCH).so
 endif
 #	rm -f $(d_dbg)/$(scriptdir)/lib-dynload/_bsddb_d.so
 
-	cp -a $(d)-dbg/$(scriptdir)/config_d $(d_dbg)/$(scriptdir)/
-	ln -sf ../../libpython$(VER)_d.so \
-		$(d_dbg)/$(scriptdir)/config_d/libpython$(VER)_d.so
+	cp -a $(d)-dbg/$(scriptdir)/config-$(DEB_HOST_MULTIARCH)_d \
+		 $(d_ldbg)/$(scriptdir)/
+	ln -sf ../../$(DEB_HOST_MULTIARCH)/libpython$(VER)_d.so \
+		$(d_ldbg)/$(scriptdir)/config-$(DEB_HOST_MULTIARCH)_d/libpython$(VER)_d.so
 	ln -sf libpython$(VER)_d.so \
-		$(d_dbg)/$(scriptdir)/config_d/libpython$(VER).so
+		$(d_ldbg)/$(scriptdir)/config-$(DEB_HOST_MULTIARCH)_d/libpython$(VER).so
 	ln -sf libpython$(VER)_d.a \
-		$(d_dbg)/$(scriptdir)/config_d/libpython$(VER).a
+		$(d_ldbg)/$(scriptdir)/config-$(DEB_HOST_MULTIARCH)_d/libpython$(VER).a
 
-	for i in $(d_dev)/usr/include/$(PVER)/*; do \
+	for i in $(d_ldev)/usr/include/$(PVER)/*; do \
 	  i=$$(basename $$i); \
 	  case $$i in pyconfig.h) continue; esac; \
-	  ln -sf ../$(PVER)/$$i $(d_dbg)/usr/include/$(PVER)_d/$$i; \
+	  ln -sf ../$(PVER)/$$i $(d_ldbg)/usr/include/$(PVER)_d/$$i; \
 	done
-	cp -p $(buildd_debug)/pyconfig.h $(d_dbg)/usr/include/$(PVER)_d/
+	cp -p $(buildd_debug)/pyconfig.h $(d_ldbg)/usr/include/$(DEB_HOST_MULTIARCH)/$(PVER)_d/
+	sed 's/@subdir@/$(PVER)_d/;s/@header@/pyconfig.h/' \
+		debian/multiarch.h.in > $(d_ldbg)/usr/include/$(PVER)_d/pyconfig.h
 	ln -sf $(PVER).1.gz $(d_dbg)/usr/share/man/man1/$(PVER)-dbg.1.gz
+	ln -sf $(DEB_HOST_MULTIARCH)-$(PVER)-dbg-config \
+		$(d_dbg)/usr/bin/$(PVER)-dbg-config
 	ln -sf $(PVER)-config.1.gz $(d_dbg)/usr/share/man/man1/$(PVER)-dbg-config.1.gz
 
 	for i in debian/*.overrides; do \
@@ -999,12 +1222,17 @@ binary-indep: build-indep install stamps/stamp-control
 			/usr/share/doc/$(p_base)/html/_static/underscore.js
 
 	: # devhelp docs
-	python debian/pyhtml2devhelp.py \
+	$(buildd_static)/python debian/pyhtml2devhelp.py \
 		$(d_doc)/usr/share/doc/$(p_base)/html index.html $(VER) \
 		> $(d_doc)/usr/share/doc/$(p_base)/html/$(PVER).devhelp
 	gzip -9v $(d_doc)/usr/share/doc/$(p_base)/html/$(PVER).devhelp
 	dh_link -p$(p_doc) \
 		/usr/share/doc/$(p_base)/html /usr/share/devhelp/books/$(PVER)
+
+	for i in $(p_ltst); do \
+	  rm -rf debian/$$i/usr/share/doc/$$i; \
+	  ln -s $(p_lbase) debian/$$i/usr/share/doc/$$i; \
+	done
 
 	dh_installdebconf -i $(dh_args)
 	dh_installexamples -i $(dh_args)
@@ -1039,16 +1267,24 @@ binary-arch: build-arch install
 	-dh_icons -a || dh_iconcache -a
 #	dh_installmime -a
 	dh_installchangelogs -a
-	for i in $(p_dev) $(p_dbg) $(p_lib); do \
+	for i in $(p_dev) $(p_dbg); do \
 	  rm -rf debian/$$i/usr/share/doc/$$i; \
 	  ln -s $(p_base) debian/$$i/usr/share/doc/$$i; \
 	done
+	for i in $(p_lbase); do \
+	  rm -rf debian/$$i/usr/share/doc/$$i; \
+	  ln -s $(p_lmin) debian/$$i/usr/share/doc/$$i; \
+	done
+	for i in $(p_ldev) $(p_ldbg) $(p_lib); do \
+	  rm -rf debian/$$i/usr/share/doc/$$i; \
+	  ln -s $(p_lbase) debian/$$i/usr/share/doc/$$i; \
+	done
 	-find debian ! -perm -200 -print -exec chmod +w {} \;
 ifneq ($(with_tk),yes)
-	rm -f $(d_base)/$(scriptdir)/lib-dynload/_tkinter.so
+	rm -f $(d_lbase)/$(scriptdir)/lib-dynload/_tkinter.$(DEB_HOST_MULTIARCH).so
 endif
 ifneq ($(with_gdbm),yes)
-	rm -f $(d_base)/$(scriptdir)/lib-dynload/gdbm.so
+	rm -f $(d_lbase)/$(scriptdir)/lib-dynload/gdbm.$(DEB_HOST_MULTIARCH).so
 endif
 	dh_strip -a -N$(p_dbg) -Xdebug -Xdbg --dbg-package=$(p_dbg)
 	cp Tools/gdb/libpython.py $(d_dbg)/usr/lib/debug/usr/bin/$(PVER)-gdb.py
@@ -1070,13 +1306,16 @@ endif
 	done
 
 	dh_makeshlibs -p$(p_lib) -V '$(p_lib)'
-	dh_makeshlibs -p$(p_dbg) -V '$(p_dbg)'
+	dh_makeshlibs -p$(p_ldbg) -V '$(p_ldbg)'
 # don't include the following symbols, found in extensions
 # which either can be built as builtin or extension.
 	sed -ri '/^ (_check_|asdl_|fast_save_|init)/d' \
-	  $(d_lib)/DEBIAN/symbols $(d_dbg)/DEBIAN/symbols
-	dh_installdeb -a
+	  $(d_lib)/DEBIAN/symbols $(d_ldbg)/DEBIAN/symbols
 	dh_shlibdeps -a
+	dep=`sed -n '/^shlibs:Depends/s/.*\(libc6[^,]*\).*/\1/p' $(d_min).substvars`; \
+	echo "shlibs:Pre-Depends=$$dep" >> $(d_min).substvars
+	sed -i '/^shlibs:Depends/s/libc6[^,]*[, ]*//' $(d_min).substvars
+	dh_installdeb -a
 	dh_gencontrol -a
 	dh_md5sums -a
 	dh_builddeb -a
@@ -1104,6 +1343,8 @@ $(patchdir)/series: $(patchdir)/series.in
 patch: stamps/stamp-patch
 stamps/stamp-patch: $(patchdir)/series
 	dh_testdir
+	uname -a
+	@echo USER=$$USER, LOGNAME=$$LOGNAME
 	QUILT_PATCHES=$(patchdir) quilt push -a || test $$? = 2
 	rm -rf autom4te.cache configure
 	autoconf
@@ -1115,11 +1356,29 @@ stamps/stamp-patch: $(patchdir)/series
 	done >> stamps/pxx
 	mv stamps/pxx $@
 
+	dh_autotools-dev_updateconfig
+
+	: # don't build pgen for cross builds, adjust timestamps
+	touch Parser/acceler.c Parser/grammar1.c Parser/listnode.c \
+	  Parser/node.c Parser/parser.c Parser/parsetok.c Parser/bitset.c \
+	  Parser/metagrammar.c Parser/firstsets.c Parser/grammar.c \
+	  Parser/pgen.c
+	touch Objects/obmalloc.c Python/mysnprintf.c Python/pyctype.c \
+	  Parser/tokenizer_pgen.c Parser/printgrammar.c Parser/pgenmain.c
+	@sleep 0.1
+	touch Grammar/Grammar 
+	@sleep 0.1
+	touch Include/graminit.h
+	@sleep 0.1
+	touch Python/graminit.c
+	ln -sf site-packages Lib/dist-packages
+
 reverse-patches: unpatch
 unpatch:
 	QUILT_PATCHES=$(patchdir) quilt pop -a -R || test $$? = 2
 	rm -f stamps/stamp-patch $(patchdir)/series
 	rm -rf configure autom4te.cache
+	rm -f Lib/dist-packages
 
 update-patches: $(patchdir)/series
 	export QUILT_PATCHES=$(patchdir); \

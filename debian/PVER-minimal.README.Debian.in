@@ -18,15 +18,19 @@ are:
   _functools		extension
   _hashlib		extensionx
   _heapq		extension
+  _io			extension
   _locale		extension
+  _md5			extension
   _random		extension
+  _sha			extension
+  _sha256		extension
+  _sha512		extension
   _socket		extension
   _sre			builtin
   _ssl			extensionx
   _struct		extension
   _symtable		builtin
   _sysconfigdata	module
-  _sysconfigdata_nd	module
   _types		builtin
   _warnings		builtin
   _weakref		extension
@@ -63,6 +67,7 @@ are:
   heapq			module
   imp			builtin
   inspect		module
+  io			module
   itertools		extension
   keyword		module
   linecache		module

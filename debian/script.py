@@ -48,4 +48,14 @@ with open(filename, "w") as logfile:
     except (IOError, OSError):
         pass
 
+pid, status = os.wait()
+returncode = 0
+if os.WIFSIGNALED(status):
+    returncode = -os.WTERMSIG(status)
+elif os.WIFEXITED(status):
+    returncode = os.WEXITSTATUS(status)
+else:
+    # Should never happen
+    raise RuntimeError("Unknown child exit status!")
 os.close(master)
+sys.exit(returncode)
