@@ -3,7 +3,7 @@
 set -e
 
 if [ "$1" = "remove" ]; then
-    pc=$(dpkg-query -f '${db:Status-Abbrev} ${binary:Package}\n' -W pkgname \
+    pc=$(dpkg-query -f '${db:Status-Abbrev} ${binary:Package}\n' -W lib@PVER@-minimal \
 	| grep -v '^.n' | wc -l)
     if [ "$pc" -le 1 ]; then
 	find /usr/lib/@PVER@ -name '*.py[co]' -print0 | xargs -r0 rm -f
@@ -11,7 +11,7 @@ if [ "$1" = "remove" ]; then
 fi
 
 if [ "$1" = "purge" ]; then
-    pc=$(dpkg-query -f '${db:Status-Abbrev} ${binary:Package}\n' -W pkgname \
+    pc=$(dpkg-query -f '${db:Status-Abbrev} ${binary:Package}\n' -W lib@PVER@-minimal \
 	| grep -v '^.n' | wc -l)
     if [ "$pc" -le 1 ]; then
 	rm -f /etc/@PVER@/site.py /etc/@PVER@/sitecustomize.py

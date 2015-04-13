@@ -3,6 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Matthias Klose <doko@debian.org>
 Build-Depends: debhelper (>= 5), @bd_dpkgdev@
+  gcc (>= 4:4.9.2),
   quilt, autoconf, autotools-dev,
   lsb-release, sharutils,
   libreadline-dev, libtinfo-dev, libncursesw5-dev (>= 5.3), @bd_gcc@
@@ -17,8 +18,11 @@ Build-Depends: debhelper (>= 5), @bd_dpkgdev@
   libdb-dev (<< 1:6.0), libgdbm-dev, python@bd_qual@, help2man,
   xvfb, xauth
 Build-Depends-Indep: python-sphinx
-Build-Conflicts: tcl8.4-dev, tk8.4-dev, @PVER@-xml, python-xml, autoconf2.13, python-cxx-dev
-Standards-Version: 3.9.5
+Build-Conflicts: tcl8.4-dev, tk8.4-dev,
+  @PVER@-xml, python-xml,
+  autoconf2.13, python-cxx-dev,
+  hardening-wrapper
+Standards-Version: 3.9.6
 Vcs-Browser: https://code.launchpad.net/~doko/python/pkg@VER@-debian
 Vcs-Bzr: http://bazaar.launchpad.net/~doko/python/pkg@VER@-debian
 XS-Testsuite: autopkgtest
@@ -44,6 +48,7 @@ Priority: @PRIO@
 Depends: lib@PVER@-minimal (= ${binary:Version}), mime-support, ${shlibs:Depends}, ${misc:Depends}
 Provides: @PVER@-cjkcodecs, @PVER@-ctypes, @PVER@-elementtree, @PVER@-celementtree, @PVER@-wsgiref, @PVER@-profiler, @PVER@-argparse, python-argparse
 Replaces: @PVER@ (<< 2.7.5-0~)
+Breaks: python-urllib3 (<< 1.9.1-3)
 Description: Interactive high-level object-oriented language (standard library, version @VER@)
  Python is a high-level, interactive, object-oriented language. Its @VER@ version
  includes an extensive class library with lots of goodies for
@@ -60,7 +65,7 @@ Pre-Depends: ${shlibs:Pre-Depends}
 Depends: lib@PVER@-minimal (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Recommends: @PVER@
 Suggests: binfmt-support
-Replaces: @PVER@ (<< 2.7.1~rc1-2~)
+Replaces: @PVER@ (<< 2.7.8-7~)
 Conflicts: binfmt-support (<< 1.1.2)
 Description: Minimal subset of the Python language (version @VER@)
  This package contains the interpreter and some essential modules.  It can
@@ -74,7 +79,7 @@ Multi-Arch: same
 Priority: @MINPRIO@
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: lib@PVER@-stdlib
-Replaces: @PVER@ (<< 2.7.4-2), @PVER@-minimal (<< 2.7.3-10), lib@PVER@-stdlib (<< 2.7.4-2)
+Replaces: @PVER@ (<< 2.7.4-2), @PVER@-minimal (<< 2.7.3-10), lib@PVER@-stdlib (<< 2.7.8-7)
 Breaks: @PVER@-minimal (<< 2.7.4~rc1-1~)
 Conflicts: binfmt-support (<< 1.1.2)
 Description: Minimal subset of the Python language (version @VER@)
@@ -159,7 +164,7 @@ Description: IDE for Python (v@VER@) using Tkinter
 Package: @PVER@-doc
 Section: doc
 Architecture: all
-Depends: libjs-jquery, ${misc:Depends}
+Depends: libjs-jquery, libjs-underscore, ${misc:Depends}
 Suggests: @PVER@
 Description: Documentation for the high-level object-oriented language Python (v@VER@)
  These is the official set of documentation for the interactive high-level

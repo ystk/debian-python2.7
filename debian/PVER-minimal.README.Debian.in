@@ -47,12 +47,16 @@ are:
   binascii		extension
   bisect		module
   cmath			extension
+  calendar		module
   codecs		module
   collections		module
   compileall		module
+  contextlib		module
   copy			module
   copy_reg		module
+  datetime		extension
   dis			module
+  encodings		package
   errno			builtin
   exceptions		builtin
   fcntl			extension
@@ -71,6 +75,7 @@ are:
   itertools		extension
   keyword		module
   linecache		module
+  locale		module
   logging		package
   marshal		builtin
   math			extension

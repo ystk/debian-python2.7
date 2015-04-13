@@ -12,7 +12,7 @@ remove_bytecode()
 
 case "$1" in
     remove)
-	pc=$(dpkg-query -f '${db:Status-Abbrev} ${binary:Package}\n' -W pkgname \
+	pc=$(dpkg-query -f '${db:Status-Abbrev} ${binary:Package}\n' -W lib@PVER@-minimal \
             | grep -v '^.n' | wc -l)
 	if [ "$pc" -le 1 ]; then
             remove_bytecode lib@PVER@-minimal@HOST_QUAL@

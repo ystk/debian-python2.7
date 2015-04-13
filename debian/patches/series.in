@@ -13,8 +13,6 @@ tkinter-import.diff
 link-opt.diff
 debug-build.diff
 hotshot-import.diff
-linecache.diff
-doc-nodownload.diff
 profiled-build.diff
 no-zip-on-sys.path.diff
 platform-lsbrelease.diff
@@ -57,13 +55,12 @@ do-not-italicize-punctuation.patch
 multiarch.diff
 lib2to3-no-pickled-grammar.diff
 add-python-config-sh.diff
-ssl.match_hostname.diff
 ext-no-libpython-link.diff
 build-hash.diff
 libffi-shared.diff
 atomic-pyc-rename.diff
 revert-unittest-loader-symlinks19352.diff
-sphinx-no-refcounting.diff
 enable-sqlite-loadext.diff
 installed-testsuite.diff
-issue21963.diff
+ensurepip-wheels.diff
+ensurepip-disabled.diff

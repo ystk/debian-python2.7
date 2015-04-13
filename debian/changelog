@@ -1,3 +1,141 @@
+python2.7 (2.7.9-2) unstable; urgency=medium
+
+  * python2.7-minimal: Make Pre-Depends mangling more robust. Closes: #779294.
+  * python2.7-doc: Depend on libjs-underscore. LP: #1424538.
+  * Remove LTO sections from the static libraries. Closes: #698395.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 01 Mar 2015 10:56:57 +0100
+
+python2.7 (2.7.9-1) unstable; urgency=medium
+
+  * Python 2.7.9 release.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 11 Dec 2014 00:38:09 +0100
+
+python2.7 (2.7.9~rc1-2) unstable; urgency=medium
+
+  * Update to 20141209, taken from the 2.7 release repository.
+    - Issue #22959: Remove the *check_hostname* parameter of
+      httplib.HTTPSConnection. The *context* parameter should be used instead.
+    - Issue #16043: Add a default limit for the amount of data
+      xmlrpclib.gzip_decode will return. This resolves CVE-2013-1753.
+      Closes: #742929.
+    - Issue #16042: CVE-2013-1752: smtplib: Limit amount of data read by
+      limiting the call to readline(). Closes: #742929.
+    - Issue #16041: In poplib, limit maximum line length read from the server
+      to prevent CVE-2013-1752. Closes: #742929.
+    - Issue #22960: Add a context argument to xmlrpclib.ServerProxy.
+    - Issue #22935: Allow the ssl module to be compiled if openssl
+      doesn't support SSL 3.
+  * Add locales to autopkg test dependencies as in 3.4.
+  * Remove Demo/scripts/newslist.* from the examples package, not
+    distributable, will get removed in 2.7.9~rc2 sources. See issue #12987.
+  * Let ensurepip always use a temporary directory for installations.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 09 Dec 2014 15:47:40 +0100
+
+python2.7 (2.7.9~rc1-1) unstable; urgency=medium
+
+  * Python 2.7.9 release candidate 1.
+    - Testsuite updates.
+    - Issue #16056: Rename test methods to avoid conflict.
+    - Issue #20351: Add examples for csv.DictReader and csv.DictWriter.
+    - PEP 476: verify certificates by default (#22417).
+    - Give urllib.urlopen a context parameter (closes #22927).
+    - Allow hostname to be passed to SSLContext even if OpenSSL doesn't
+      support SNI (closes #22921).
+    - Allow passing cert/ssl information to urllib2.urlopen and
+      httplib.HTTPSConnection (backport of issues #9003 and #22366).
+  * Let libpython2.7-stdlib break python-urllib3 (<< 1.9.1-3). Closes: #770157.
+  * Ignore the test_threading_local test failure in the Debian CI environment.
+    Succeeds even there when repeated.
+  * Don't pass default compiler search directories in the pkgconfig file.
+    Closes: #770935.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 26 Nov 2014 21:01:48 +0100
+
+python2.7 (2.7.8-12) unstable; urgency=medium
+
+  * Update to 20141118, taken from the 2.7 branch.
+    - Issue #12728: Different Unicode characters having the same uppercase
+      but different lowercase are now matched in case-insensitive regular
+      expressions.
+    - Issue #22821: Fixed fcntl() with integer argument on 64-bit big-endian
+      platforms.
+    - Issues #814253, #9179: Group references and conditional group references
+      now work in lookbehind assertions in regular expressions.
+    - Issue #22769: Fixed ttk.Treeview.tag_has() when called without arguments.
+    - Issue #22787: Allow the keyfile argument of SSLContext.load_cert_chain
+      to be None.
+    - Issue #22775: Fixed unpickling of Cookie.SimpleCookie with protocol 2.
+    - Issue #22776: Brought excluded code into the scope of a try block in
+      SysLogHandler.emit().
+    - Issue #17381: Fixed ranges handling in case-insensitive regular
+      expressions.
+    - Issue #19329: Optimized compiling charsets in regular expressions.
+    - Issue #22410: Module level functions in the re module now cache compiled
+      locale-dependent regular expressions taking into account the locale.
+    - Issue #8876: distutils now falls back to copying files when hard linking
+      doesn't work.  This allows use with special filesystems such as
+      VirtualBox shared folders.
+    - Issue #22193: Fixed integer overflow error in sys.getsizeof().
+  * Backport the ensurepip patch from 3.4.
+  * Disable ensurepip in Debian, at least for the upcoming release.
+  * Fix maintainer scripts for byte-code removal. Closes: #769078.
+  * Allow building and testing without SSLv3 support (Kurt Roeckx).
+    Closes: #768611.
+  * Let distutils.sysconfig.get_python_inc() honor the "prefix" argument.
+    Closes: #769720.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 18 Nov 2014 11:37:13 +0100
+
+python2.7 (2.7.8-11) unstable; urgency=medium
+
+  * Update to 20141018, taken from the 2.7 branch.
+    - Issue #9351: Defaults set with set_defaults on an argparse subparser
+      are no longer ignored when also set on the parent parser.
+    - Issue #20421: Add a .version() method to SSL sockets exposing the actual
+      protocol version in use.
+    - Issue #22435: Fix a file descriptor leak when SocketServer bind fails.
+    - Issue #13664: GzipFile now supports non-ascii Unicode filenames.
+    - Issue #13096: Fixed segfault in CTypes POINTER handling of large
+      values.
+    - Issue #11694: Raise ConversionError in xdrlib as documented.
+    - Issue #10712: 2to3 has a new "asserts" fixer that replaces deprecated names
+      of unittest methods (e.g. failUnlessEqual -> assertEqual).
+  * Pass -ffat-lto-objects for LTO enabled builds with GCC 4.9.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 18 Oct 2014 14:14:19 +0200
+
+python2.7 (2.7.8-10) unstable; urgency=medium
+
+  * Update to 20141007, taken from the 2.7 branch.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 07 Oct 2014 19:42:51 +0200
+
+python2.7 (2.7.8-9) unstable; urgency=medium
+
+  * Fix refcounting error in the fix for issue #22523. Closes: #762010.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 02 Oct 2014 13:49:07 +0200
+
+python2.7 (2.7.8-8) unstable; urgency=medium
+
+  * Update to 20141002, taken from the 2.7 branch.
+  * Refresh patches.
+  * Apply proposed patch for issue #22523. Closes: #762010.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 02 Oct 2014 02:13:37 +0200
+
+python2.7 (2.7.8-7) unstable; urgency=medium
+
+  * Update to 20140909, taken from the 2.7 branch.
+  * debian/tests/testsuite{,-dbg}: Several tests fail with configured proxy
+    and disabled network test resources. Explicitly unset proxy variables.
+    See issue #22371.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 09 Sep 2014 22:02:11 +0200
+
 python2.7 (2.7.8-6) unstable; urgency=medium
 
   * distuils: For extension builds, always pass BASECFLAGS.

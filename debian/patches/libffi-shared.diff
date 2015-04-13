@@ -2,7 +2,7 @@ Index: b/setup.py
 ===================================================================
 --- a/setup.py
 +++ b/setup.py
-@@ -2129,7 +2129,7 @@ class PyBuildExt(build_ext):
+@@ -2131,7 +2131,7 @@ class PyBuildExt(build_ext):
                      break
          ffi_lib = None
          if ffi_inc is not None:

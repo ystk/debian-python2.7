@@ -39,6 +39,7 @@ sh $debian_dir/locale-gen
 export LANG=C
 
 arch=$(dpkg --print-architecture)
+vendor=$(dpkg-vendor --query Vendor)
 
 TESTPYTHON="python2.7 -E -Wd -3 -tt /usr/lib/python2.7/test/regrtest.py"
 TESTOPTS="-w -uall,-network,-urlfetch,-gui,-xpickle"
@@ -50,8 +51,18 @@ TESTEXCLUSIONS="$TESTEXCLUSIONS test_curses"
 # test_distutils: failing tests test_parse_makefile_base, test_parse_makefile_literal_dollar
 TESTEXCLUSIONS="$TESTEXCLUSIONS test_distutils"
 
+# test_ensurepip: module disabled in Debian
+TESTEXCLUSIONS="$TESTEXCLUSIONS test_ensurepip"
+
 # test_gdb: not run for the optimized build
 TESTEXCLUSIONS="$TESTEXCLUSIONS test_gdb"
+
+# test_threading_local: fails in the Debian CI environment, but even
+# succeeds there when re-run. See
+# http://ci.debian.net/data/packages/unstable/amd64/p/python2.7/20141121_061940.autopkgtest.log.gz
+case "$vendor" in Debian)
+  TESTEXCLUSIONS="$TESTEXCLUSIONS test_threading_local"
+esac
 
 # test_zipfile: Issue 17753, requires write access to test and email.test
 TESTEXCLUSIONS="$TESTEXCLUSIONS test_zipfile"
@@ -73,13 +84,17 @@ case "$arch" in
 	;;
 esac
 
+# several tests fail with configured proxy; we don't need internet access, so
+# unset proxy variables
+EXTRAENV="env -u https_proxy -u http_proxy -u no_proxy HOME=$tmphome"
+
 script=$debian_dir/script.py
 if [ -f "$script" ]; then
-  cmd1="HOME=$tmphome python2.7 $script \"$log\" \"$TESTPYTHON $TESTOPTS $TESTEXCLUSIONS $SEPARATE_TESTS\""
-  cmd2="HOME=$tmphome python2.7 $script \"$log\" \"$TESTPYTHON $TESTOPTS $SEPARATE_TESTS\""
+  cmd1="$EXTRAENV python2.7 $script \"$log\" \"$TESTPYTHON $TESTOPTS $TESTEXCLUSIONS $SEPARATE_TESTS\""
+  cmd2="$EXTRAENV python2.7 $script \"$log\" \"$TESTPYTHON $TESTOPTS $SEPARATE_TESTS\""
 else
-  cmd1="HOME=$tmphome $TESTPYTHON $TESTOPTS $TESTEXCLUSIONS $SEPARATE_TESTS"
-  cmd2="HOME=$tmphome $TESTPYTHON $TESTOPTS $SEPARATE_TESTS"
+  cmd1="$EXTRAENV $TESTPYTHON $TESTOPTS $TESTEXCLUSIONS $SEPARATE_TESTS"
+  cmd2="$EXTRAENV $TESTPYTHON $TESTOPTS $SEPARATE_TESTS"
 fi
 
 echo "Running the python testsuite with the standard interpreter:"

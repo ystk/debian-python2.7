@@ -24,7 +24,7 @@ Index: b/Modules/socketmodule.c
 ===================================================================
 --- a/Modules/socketmodule.c
 +++ b/Modules/socketmodule.c
-@@ -4905,9 +4905,11 @@ init_socket(void)
+@@ -4903,9 +4903,11 @@ init_socket(void)
  #ifdef  SO_OOBINLINE
      PyModule_AddIntConstant(m, "SO_OOBINLINE", SO_OOBINLINE);
  #endif

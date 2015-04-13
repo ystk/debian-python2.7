@@ -2,16 +2,16 @@ Index: b/Lib/sysconfig.py
 ===================================================================
 --- a/Lib/sysconfig.py
 +++ b/Lib/sysconfig.py
-@@ -332,7 +332,7 @@ def _parse_makefile(filename, vars=None)
- def _get_makefile_filename():
+@@ -333,7 +333,7 @@ def get_makefile_filename():
+     """Return the path of the Makefile."""
      if _PYTHON_BUILD:
          return os.path.join(_PROJECT_BASE, "Makefile")
 -    return os.path.join(get_path('platstdlib').replace("/usr/local","/usr",1), "config" + (sys.pydebug and "_d" or ""), "Makefile")
 +    return os.path.join(get_config_var('LIBPL'), "Makefile")
  
- def _generate_posix_vars():
-     """Generate the Python module containing build-time variables."""
-@@ -528,6 +528,12 @@ def get_config_vars(*args):
+ # Issue #22199: retain undocumented private name for compatibility
+ _get_makefile_filename = get_makefile_filename
+@@ -532,6 +532,12 @@ def get_config_vars(*args):
          # the init-function.
          _CONFIG_VARS['userbase'] = _getuserbase()
  
@@ -38,7 +38,7 @@ Index: b/Makefile.pre.in
  # Install prefix for architecture-independent files
  prefix=		@prefix@
  
-@@ -558,6 +561,10 @@ Makefile Modules/config.c: Makefile.pre
+@@ -568,6 +571,10 @@ Makefile Modules/config.c: Makefile.pre
  	@mv config.c Modules
  	@echo "The Makefile was updated, you may need to re-run make."
  
@@ -49,7 +49,7 @@ Index: b/Makefile.pre.in
  
  Modules/Setup: $(srcdir)/Modules/Setup.dist
  	@if test -f Modules/Setup; then \
-@@ -922,7 +929,7 @@ maninstall:	altmaninstall
+@@ -932,7 +939,7 @@ maninstall:	altmaninstall
  	(cd $(DESTDIR)$(MANDIR)/man1; $(LN) -s python2.1 python.1)
  
  # Install the library
@@ -58,7 +58,7 @@ Index: b/Makefile.pre.in
  EXTRAPLATDIR= @EXTRAPLATDIR@
  EXTRAMACHDEPPATH=@EXTRAMACHDEPPATH@
  MACHDEPS=	$(PLATDIR) $(EXTRAPLATDIR)
-@@ -1082,10 +1089,10 @@ inclinstall:
+@@ -1093,10 +1100,10 @@ inclinstall:
  
  # Install the library and miscellaneous stuff needed for extending/embedding
  # This goes into $(exec_prefix)$(DEBUG_EXT)
@@ -71,7 +71,7 @@ Index: b/Makefile.pre.in
  
  libainstall:	all python-config
  	@for i in $(LIBDIR) $(LIBP) $(LIBPL) $(LIBPC); \
-@@ -1361,6 +1368,11 @@ patchcheck:
+@@ -1372,6 +1379,11 @@ patchcheck:
  
  Python/thread.o: @THREADHEADERS@
  
@@ -117,7 +117,7 @@ Index: b/configure.ac
 ===================================================================
 --- a/configure.ac
 +++ b/configure.ac
-@@ -672,6 +672,9 @@ fi
+@@ -675,6 +675,9 @@ fi
  MULTIARCH=$($CC --print-multiarch 2>/dev/null)
  AC_SUBST(MULTIARCH)
  
@@ -131,12 +131,24 @@ Index: b/Lib/distutils/sysconfig.py
 ===================================================================
 --- a/Lib/distutils/sysconfig.py
 +++ b/Lib/distutils/sysconfig.py
-@@ -90,7 +90,11 @@ def get_python_inc(plat_specific=0, pref
+@@ -74,8 +74,6 @@ def get_python_inc(plat_specific=0, pref
+     If 'prefix' is supplied, use it instead of sys.prefix or
+     sys.exec_prefix -- i.e., ignore 'plat_specific'.
+     """
+-    if prefix is None:
+-        prefix = plat_specific and EXEC_PREFIX or PREFIX
+ 
+     if os.name == "posix":
+         if python_build:
+@@ -90,7 +88,14 @@ def get_python_inc(plat_specific=0, pref
                  # Include is located in the srcdir
                  inc_dir = os.path.join(srcdir, "Include")
              return inc_dir
 -        return os.path.join(prefix, "include", "python" + get_python_version())+(sys.pydebug and "_d" or "")
 +        else:
++            if not (prefix is None):
++                return os.path.join(prefix, "include",
++                                    "python" + get_python_version())+(sys.pydebug and "_d" or "")
 +            if plat_specific:
 +                return get_config_var('CONFINCLUDEPY')
 +            else:
@@ -144,7 +156,7 @@ Index: b/Lib/distutils/sysconfig.py
      elif os.name == "nt":
          return os.path.join(prefix, "include")
      elif os.name == "os2":
-@@ -251,7 +255,7 @@ def get_makefile_filename():
+@@ -263,7 +268,7 @@ def get_makefile_filename():
      if python_build:
          return os.path.join(project_base, "Makefile")
      lib_dir = get_python_lib(plat_specific=1, standard_lib=1)
@@ -157,7 +169,7 @@ Index: b/Python/sysmodule.c
 ===================================================================
 --- a/Python/sysmodule.c
 +++ b/Python/sysmodule.c
-@@ -1439,6 +1439,8 @@ _PySys_Init(void)
+@@ -1453,6 +1453,8 @@ _PySys_Init(void)
                          PyFloat_GetInfo());
      SET_SYS_FROM_STRING("long_info",
                          PyLong_GetInfo());

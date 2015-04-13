@@ -106,7 +106,6 @@ def reduce_depgraph(dg):
 
 # guarded imports, which don't need to be included in python-minimal
 excluded_imports = {
-    'codecs': set(('encodings',)),
     'collections': set(('doctest', 'dummy_thread', 'cPickle')),
     'copy': set(('reprlib',)),
     'difflib': set(('doctest',)),

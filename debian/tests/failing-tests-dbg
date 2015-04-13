@@ -38,6 +38,9 @@ sh $debian_dir/locale-gen
 
 export LANG=C
 
+arch=$(dpkg --print-architecture)
+vendor=$(dpkg-vendor --query Vendor)
+
 tmphome=$ADTTMP/home
 mkdir -p $tmphome
 if [ -n "$su_user" ]; then
@@ -53,6 +56,13 @@ TESTEXCLUSIONS="$TESTEXCLUSIONS test_curses"
 
 # test_distutils: failing tests test_parse_makefile_base, test_parse_makefile_literal_dollar
 TESTEXCLUSIONS="$TESTEXCLUSIONS test_distutils"
+
+# test_threading_local: fails in the Debian CI environment, but even
+# succeeds there when re-run. See
+# http://ci.debian.net/data/packages/unstable/amd64/p/python2.7/20141121_061940.autopkgtest.log.gz
+case "$vendor" in Debian)
+  TESTEXCLUSIONS="$TESTEXCLUSIONS test_threading_local"
+esac
 
 # test_zipfile: Issue 17753, requires write access to test and email.test
 TESTEXCLUSIONS="$TESTEXCLUSIONS test_zipfile"

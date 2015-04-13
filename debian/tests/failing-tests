@@ -39,6 +39,7 @@ sh $debian_dir/locale-gen
 export LANG=C
 
 arch=$(dpkg --print-architecture)
+vendor=$(dpkg-vendor --query Vendor)
 
 TESTPYTHON="python2.7 -E -Wd -3 -tt /usr/lib/python2.7/test/regrtest.py"
 TESTOPTS="-w -uall,-network,-urlfetch,-gui,-xpickle"
@@ -52,6 +53,13 @@ TESTEXCLUSIONS="$TESTEXCLUSIONS test_distutils"
 
 # test_gdb: not run for the optimized build
 TESTEXCLUSIONS="$TESTEXCLUSIONS test_gdb"
+
+# test_threading_local: fails in the Debian CI environment, but even
+# succeeds there when re-run. See
+# http://ci.debian.net/data/packages/unstable/amd64/p/python2.7/20141121_061940.autopkgtest.log.gz
+case "$vendor" in Debian)
+  TESTEXCLUSIONS="$TESTEXCLUSIONS test_threading_local"
+esac
 
 # test_zipfile: Issue 17753, requires write access to test and email.test
 TESTEXCLUSIONS="$TESTEXCLUSIONS test_zipfile"
